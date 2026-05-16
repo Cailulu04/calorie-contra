@@ -96,7 +96,8 @@ header h1 {
   font-size: 48px;
 }
 
-p {
+/* Nutrition Facts label rows only — do not apply to all <p> site-wide */
+.label p {
   margin: 0;
   display: flex;
   justify-content: space-between;
@@ -320,8 +321,9 @@ p {
 
 /* Personal Information (profile): wider two-column layout */
 @media (min-width: 768px) {
-  .profile-info-split {
-    border-right: 1px solid rgba(0, 0, 0, 0.1);
+  .profile-page .profile-info-split {
+    border-right: 1px solid rgba(22, 101, 52, 0.16);
+    padding-right: 1.25rem;
   }
 }
 
@@ -1244,4 +1246,528 @@ p {
 .food-detail-page .facts {
   font-family: "Fraunces", Georgia, "Times New Roman", serif;
   font-size: 0.72rem;
+}
+
+/* Profile meal plan & food-log day meal suggestions */
+.profile-meal-plan-card {
+  background: linear-gradient(165deg, #fafdfb 0%, #f0f7f2 55%, #e8f3eb 100%);
+  border: 1px solid rgba(22, 101, 52, 0.14);
+}
+
+.profile-meal-block {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed rgba(22, 101, 52, 0.12);
+}
+
+.profile-meal-block:last-child {
+  border-bottom: none;
+}
+
+/* ----- Food log day: Meal suggestions card ----- */
+.meal-suggest-card {
+  overflow: hidden;
+}
+
+.meal-suggest-accent {
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    rgba(22, 101, 52, 0.3),
+    #166534 50%,
+    rgba(22, 101, 52, 0.3)
+  );
+}
+
+.meal-suggest-body {
+  background: transparent;
+}
+
+.meal-suggest-lead {
+  display: block;
+  max-width: 40rem;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: #4b5563;
+}
+
+.meal-suggest-profile-link {
+  color: #166534;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.meal-suggest-profile-link:hover {
+  color: #14532d;
+}
+
+.meal-suggest-form-panel {
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.88) 0%,
+    rgba(240, 247, 242, 0.92) 100%
+  );
+  border: 1px solid rgba(22, 101, 52, 0.14);
+  border-radius: 0.85rem;
+  padding: 1.1rem 1.15rem 1.2rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.meal-suggest-field-label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #166534;
+}
+
+.meal-suggest-goal-group .meal-suggest-goal-field {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #14532d;
+  background: #f5f0e6;
+  border-color: rgba(22, 101, 52, 0.2);
+  text-align: left;
+}
+
+.meal-suggest-goal-group .meal-suggest-goal-field:focus {
+  border-color: rgba(22, 101, 52, 0.45);
+  box-shadow: 0 0 0 0.2rem rgba(22, 101, 52, 0.12);
+  background: #fffef9;
+}
+
+.meal-suggest-goal-suffix {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: 0.85rem;
+  color: #166534;
+  background: #f5f0e6;
+  border-color: rgba(22, 101, 52, 0.2);
+}
+
+.meal-suggest-submit-btn {
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+  border-radius: 0.55rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.meal-suggest-submit-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meal-suggest-submit-btn:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+.meal-suggest-status-pill {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.meal-suggest-status-pill--success {
+  background: rgba(220, 252, 231, 0.95);
+  color: #166534;
+  border: 1px solid rgba(22, 101, 52, 0.2);
+}
+
+.meal-suggest-status-pill--warning {
+  background: rgba(254, 249, 195, 0.95);
+  color: #854d0e;
+  border: 1px solid rgba(161, 98, 7, 0.25);
+}
+
+.meal-suggest-status-pill--danger {
+  background: rgba(254, 226, 226, 0.95);
+  color: #991b1b;
+  border: 1px solid rgba(185, 28, 28, 0.2);
+}
+
+.meal-suggest-status-context {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.meal-suggest-metric {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(22, 101, 52, 0.12);
+  border-radius: 0.65rem;
+  padding: 0.65rem 0.4rem;
+  box-shadow: 0 2px 8px rgba(13, 77, 45, 0.05);
+}
+
+.meal-suggest-metric-label {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(22, 101, 52, 0.78);
+  margin-bottom: 0.25rem;
+}
+
+.meal-suggest-metric-value {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: clamp(1.2rem, 3vw, 1.55rem);
+  font-weight: 700;
+  font-style: italic;
+  color: #14532d;
+  line-height: 1.15;
+}
+
+.meal-suggest-metric-unit {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 0.72rem;
+  font-style: italic;
+  color: rgba(22, 101, 52, 0.7);
+  margin-top: 0.1rem;
+}
+
+.meal-suggest-macros {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(22, 101, 52, 0.12);
+  border-left: 4px solid #166534;
+  border-radius: 0.65rem;
+  padding: 0.85rem 1rem;
+}
+
+.meal-suggest-macros-label {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #166534;
+  margin-bottom: 0.35rem;
+}
+
+.meal-suggest-macros-text {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #374151;
+}
+
+.meal-suggest-ideas-title {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+  font-weight: 700;
+  font-style: italic;
+  color: #134e2a;
+  margin: 0;
+}
+
+.meal-suggest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.meal-suggest-item {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(22, 101, 52, 0.12);
+  border-radius: 0.75rem;
+  padding: 0.9rem 1rem;
+  transition: box-shadow 0.15s ease;
+}
+
+.meal-suggest-item:hover {
+  box-shadow: 0 4px 14px rgba(13, 77, 45, 0.08);
+}
+
+.meal-suggest-item-num {
+  flex: 0 0 1.75rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #166534;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.meal-suggest-item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.meal-suggest-item-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.meal-suggest-item-title {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  font-weight: 700;
+  font-style: italic;
+  color: #134e2a;
+}
+
+.meal-suggest-item-kcal {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-style: italic;
+  color: #166534;
+  white-space: nowrap;
+}
+
+.meal-suggest-item-detail {
+  display: block;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #4b5563;
+}
+
+.meal-suggest-disclaimer-divider {
+  border: 0;
+  border-top: 1px dashed rgba(22, 101, 52, 0.22);
+  opacity: 1;
+}
+
+.meal-suggest-disclaimer {
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.profile-page .profile-prefs-card,
+.profile-page .profile-main-card {
+  overflow: hidden;
+}
+
+.profile-page .profile-main-card-accent {
+  height: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(22, 101, 52, 0.25),
+    #166534 50%,
+    rgba(22, 101, 52, 0.25)
+  );
+}
+
+.profile-page .profile-main-card-body {
+  background: transparent;
+}
+
+.profile-page .profile-main-card-header {
+  text-align: center;
+}
+
+.profile-page .profile-main-card-title {
+  margin-bottom: 0.65rem;
+}
+
+.profile-page .profile-main-card-lead {
+  display: block;
+  max-width: 46rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: #4b5563;
+  text-wrap: balance;
+}
+
+.profile-page .profile-main-card-lead strong {
+  display: inline;
+  font-weight: 600;
+  color: #166534;
+}
+
+.profile-page .profile-form-panel {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(22, 101, 52, 0.12);
+  border-radius: 0.85rem;
+  padding: 1rem 1rem 1.1rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+@media (min-width: 992px) {
+  .profile-page .profile-form-panel {
+    padding: 1.15rem 1.2rem 1.25rem;
+  }
+}
+
+.profile-page .profile-form-panel .profile-section-title {
+  margin-bottom: 1rem;
+}
+
+.profile-page .profile-prefs-panel {
+  margin-bottom: 0;
+}
+
+.profile-page .profile-field {
+  margin-bottom: 0.85rem;
+}
+
+.profile-page .profile-field-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  text-align: left;
+  color: #134e2a;
+}
+
+.profile-page .profile-field-label--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.profile-page .profile-form-control {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(22, 101, 52, 0.2);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.95rem;
+  color: #1f2937;
+}
+
+.profile-page .profile-form-control:focus {
+  border-color: rgba(22, 101, 52, 0.5);
+  box-shadow: 0 0 0 0.2rem rgba(22, 101, 52, 0.15);
+  background: #fff;
+  outline: 0;
+}
+
+.profile-page .profile-submit-wrap {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed rgba(22, 101, 52, 0.25);
+}
+
+.profile-page .profile-submit-btn {
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+  border-radius: 0.55rem;
+  letter-spacing: 0.02em;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.profile-page .profile-submit-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-page .profile-submit-btn:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+.profile-page .profile-prefs-intro {
+  display: block;
+  max-width: 46rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: #4b5563;
+  text-wrap: balance;
+}
+
+.profile-page .profile-prefs-intro strong {
+  display: inline;
+  font-weight: 600;
+  color: #166534;
+}
+
+.profile-page .profile-customize-status {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.profile-page .profile-result-slot .alert {
+  border-radius: 0.65rem;
+}
+
+.profile-page .profile-result--success {
+  background: linear-gradient(165deg, #f0fdf4 0%, #ecfdf5 100%);
+  border-color: rgba(22, 101, 52, 0.25);
+}
+
+.profile-page .profile-result-label {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-weight: 600;
+  color: #134e2a;
+}
+
+.profile-page .profile-kcal-display {
+  margin: 0;
+  line-height: 1.2;
+}
+
+.profile-page .profile-kcal-value {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 700;
+  color: #166534;
+}
+
+.profile-page .profile-kcal-unit {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #166534;
+  margin-left: 0.35rem;
+}
+
+.profile-page .profile-metric-chips > [class*="col"] {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(22, 101, 52, 0.1);
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.55rem;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.profile-page .profile-metric-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #166534;
+  margin-bottom: 0.15rem;
+}
+
+.profile-page .profile-result-footnote {
+  color: #6b7280;
+}
+
+.profile-page .profile-result--danger {
+  border-color: rgba(185, 28, 28, 0.35);
 }

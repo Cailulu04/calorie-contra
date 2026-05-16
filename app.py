@@ -29,6 +29,10 @@ from helpers import (
     validate_registration_form,
     get_nutritional_info,
 )
+from meal_plan import build_meal_recommendations, build_profile_day_meal_plan
+from meal_preferences import normalize_meal_preferences
+from profile_meal_gemini import generate_profile_meal_plan_gemini
+from gemini_call import generate_content_with_timeout, run_sync_with_timeout
 from dotenv import load_dotenv
 import google.generativeai as genai
 from google.generativeai.types import GenerationConfig
@@ -132,6 +136,17 @@ gemini_chat_food_extract = genai.GenerativeModel(
         "If there are no concrete per-food or per-meal estimates, return {\"items\":[]}."
     ),
 )
+
+gemini_profile_meal_model = genai.GenerativeModel(
+    model_name="gemini-2.5-flash",
+    system_instruction=(
+        "You are a registered-dietitian-style meal planner for a calorie-tracking app. "
+        "Suggest practical, culturally neutral meals with portion hints. "
+        "Respect vegetarian/vegan rules and user restrictions. "
+        "Reply in JSON when asked."
+    ),
+)
+
 # Configure application
 app = Quart(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
@@ -597,6 +612,30 @@ async def food_log_day():
         total_c += float(e.carbs or 0)
         total_f += float(e.fat or 0)
 
+    meal_recommendations = None
+    daily_goal_raw = (request.args.get("daily_goal") or "").strip()
+    if daily_goal_raw:
+        try:
+            daily_goal = float(daily_goal_raw)
+            if 800 <= daily_goal <= 6000:
+                prefs = None
+                pref_json = (request.args.get("preferences") or "").strip()
+                if pref_json:
+                    try:
+                        prefs = json.loads(pref_json)
+                    except json.JSONDecodeError:
+                        prefs = None
+                meal_recommendations = build_meal_recommendations(
+                    daily_goal,
+                    total_cal,
+                    total_p,
+                    total_c,
+                    total_f,
+                    preferences=prefs,
+                )
+        except ValueError:
+            meal_recommendations = None
+
     return await render_template(
         "food-log-day.html",
         day_iso=date_str,
@@ -609,6 +648,8 @@ async def food_log_day():
             "carbs": total_c,
             "fat": total_f,
         },
+        meal_recommendations=meal_recommendations,
+        daily_goal_value=daily_goal_raw,
     )
 
 
@@ -753,6 +794,110 @@ async def calorie_needs():
             "daily_calories": round(daily_need, 2),
         }
     )
+
+
+@app.route("/api/meal-recommend", methods=["POST"])
+@login_required
+async def api_meal_recommend():
+    data = await request.get_json()
+    if not data:
+        return jsonify({"message": "Invalid input"}), 400
+    try:
+        daily_calories = float(data.get("daily_calories"))
+    except (TypeError, ValueError):
+        return jsonify({"message": "daily_calories is required"}), 400
+    if not (800 <= daily_calories <= 6000):
+        return jsonify({"message": "daily_calories must be between 800 and 6000"}), 400
+
+    date_str = (data.get("date") or "").strip()
+    if date_str:
+        try:
+            day = datetime.strptime(date_str, "%Y-%m-%d")
+        except ValueError:
+            return jsonify({"message": "Invalid date"}), 400
+    else:
+        day = datetime.now()
+
+    uid = session["user_id"]
+    stmt = select(FoodCount).where(
+        FoodCount.user_id == uid,
+        FoodCount.year == day.year,
+        FoodCount.month == day.month,
+        FoodCount.day == day.day,
+    )
+    result = await db_session.execute(stmt)
+    entries = result.scalars().all()
+    total_cal = total_p = total_c = total_f = 0.0
+    for e in entries:
+        total_cal += float(e.calories or 0)
+        total_p += float(e.protein or 0)
+        total_c += float(e.carbs or 0)
+        total_f += float(e.fat or 0)
+
+    prefs = data.get("preferences")
+    plan = build_meal_recommendations(
+        daily_calories,
+        total_cal,
+        total_p,
+        total_c,
+        total_f,
+        preferences=prefs,
+    )
+    return jsonify(plan)
+
+
+@app.route("/api/profile-meal-plan", methods=["POST"])
+@login_required
+async def api_profile_meal_plan():
+    data = await request.get_json()
+    if not data:
+        return jsonify({"message": "Invalid input"}), 400
+
+    try:
+        daily_calories = float(data.get("daily_calories"))
+        gender = (data.get("gender") or "").strip().lower()
+        age = int(data.get("age"))
+        height_cm = float(data.get("height"))
+        weight_kg = float(data.get("weight"))
+        activity_level = (data.get("activity_level") or "moderate").strip().lower()
+    except (TypeError, ValueError):
+        return jsonify({"message": "Invalid profile fields"}), 400
+
+    if not (800 <= daily_calories <= 6000):
+        return jsonify({"message": "daily_calories must be between 800 and 6000"}), 400
+    if gender not in {"male", "female"}:
+        return jsonify({"message": "Invalid gender"}), 400
+    if activity_level not in _ACTIVITY_FACTORS:
+        return jsonify({"message": "Invalid activity level"}), 400
+
+    prefs = normalize_meal_preferences(data.get("preferences"))
+    daily_int = int(round(daily_calories))
+
+    try:
+        plan = await generate_profile_meal_plan_gemini(
+            gemini_profile_meal_model,
+            daily_kcal=daily_int,
+            gender=gender,
+            age=age,
+            height_cm=height_cm,
+            weight_kg=weight_kg,
+            activity_level=activity_level,
+            preferences=prefs,
+        )
+    except Exception as exc:
+        print(f"profile-meal-plan error: {exc}")
+        plan = build_profile_day_meal_plan(
+            daily_int,
+            gender=gender,
+            age=age,
+            height_cm=height_cm,
+            weight_kg=weight_kg,
+            activity_level=activity_level,
+            preferences=prefs,
+        )
+        plan["ai_note"] = f"AI unavailable ({exc}). Showing rule-based plan."
+
+    return jsonify({"profile_meal_plan": plan})
 
 # new added code
 
@@ -1768,12 +1913,15 @@ async def generate():
     try:
         loop = asyncio.get_event_loop()
 
-        def get_ai_chat_response():
-            chat = gemini_chat_model.start_chat(history=history_for_api)
-            response = chat.send_message(message_to_model)
-            return _gemini_response_text(response)
+        async def get_ai_chat_response():
+            def _send():
+                chat = gemini_chat_model.start_chat(history=history_for_api)
+                response = chat.send_message(message_to_model)
+                return _gemini_response_text(response)
 
-        response_text = await loop.run_in_executor(None, get_ai_chat_response)
+            return await run_sync_with_timeout(_send)
+
+        response_text = await get_ai_chat_response()
         response_text = response_text or ""
         visible_text, loggable_items = strip_chat_food_log_blocks(response_text)
         if (
@@ -1790,7 +1938,7 @@ async def generate():
                 return _extract_loggable_items_chat_fallback_sync(prompt, visible_text)
 
             try:
-                fb = await loop.run_in_executor(None, run_fallback)
+                fb = await run_sync_with_timeout(run_fallback)
                 if fb:
                     loggable_items = fb
             except Exception as ex:
@@ -1813,6 +1961,10 @@ async def generate():
             out["conversation_id"] = conversation_id_for_response
         return jsonify(out)
 
+    except asyncio.TimeoutError:
+        return jsonify(
+            {"error": "Chat timed out. Check network or gemini_api_key in .env."}
+        ), 504
     except Exception as e:
         print(f"Chat Error: {e}")
         return jsonify({"error": str(e)}), 500
@@ -1834,14 +1986,10 @@ async def analyze_image():
             {"mime_type": "image/jpeg", "data": img_data}
         ]
 
-        # Run sync Gemini call in a thread pool so the event loop is not blocked
-        loop = asyncio.get_event_loop()
-
-        def get_ai_response():
-            response = gemini_food_image_model.generate_content(contents)
-            return response.text.strip()
-
-        food_name = await loop.run_in_executor(None, get_ai_response)
+        response = await generate_content_with_timeout(
+            gemini_food_image_model, contents
+        )
+        food_name = (response.text or "").strip()
 
         print(f"--- AI vision result: {food_name} ---")
 
@@ -1881,6 +2029,13 @@ async def analyze_image():
             "items": items,
         })
 
+    except asyncio.TimeoutError:
+        return jsonify(
+            {
+                "status": "error",
+                "message": "Image analysis timed out. Check network or gemini_api_key.",
+            }
+        ), 504
     except Exception as e:
         print(f"Image analysis error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500

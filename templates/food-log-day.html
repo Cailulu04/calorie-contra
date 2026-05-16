@@ -52,6 +52,106 @@
                     </div>
                 </div>
 
+                <div class="card border-0 shadow-sm mb-4 food-log-visual-card meal-suggest-card">
+                    <div class="meal-suggest-accent" aria-hidden="true"></div>
+                    <div class="card-body meal-suggest-body p-3 p-md-4 p-lg-4">
+                        <h2 class="food-log-section-title meal-suggest-title mb-2">Meal suggestions</h2>
+                        <p class="meal-suggest-lead mb-4">
+                            Enter a daily calorie target to frame suggestions. Set it from your
+                            <a href="{{ url_for('profile') }}" class="meal-suggest-profile-link">Profile</a>
+                            prediction or type a value below.
+                        </p>
+
+                        <div class="meal-suggest-form-panel mb-4">
+                            <form method="GET" action="{{ url_for('food_log_day') }}" class="meal-suggest-form" id="meal-suggest-form">
+                                <input type="hidden" name="date" value="{{ day_iso }}" />
+                                <input type="hidden" name="week_anchor" value="{{ week_anchor }}" />
+                                <label class="meal-suggest-field-label" for="daily-goal-input">Daily target</label>
+                                <div class="input-group meal-suggest-goal-group mb-3">
+                                    <input type="number" class="form-control meal-suggest-goal-field" id="daily-goal-input"
+                                        name="daily_goal" min="800" max="6000" step="0.01" inputmode="decimal"
+                                        value="{{ daily_goal_value or '' }}" placeholder="2113.00" required
+                                        aria-describedby="meal-suggest-goal-hint" />
+                                    <span class="input-group-text meal-suggest-goal-suffix">kcal</span>
+                                </div>
+                                <p id="meal-suggest-goal-hint" class="visually-hidden">Daily calorie target between 800 and 6000, up to two decimal places</p>
+                                <button type="submit" class="btn btn-success w-100 fw-semibold btn-cta-green meal-suggest-submit-btn">
+                                    Get suggestions
+                                </button>
+                            </form>
+                        </div>
+
+                        {% if meal_recommendations %}
+                        <div class="meal-suggest-results">
+                            <div class="meal-suggest-status-row d-flex flex-wrap align-items-center gap-2 mb-3">
+                                <span class="meal-suggest-status-pill meal-suggest-status-pill--{{ meal_recommendations.status_tone }}">
+                                    {{ meal_recommendations.status_label }}
+                                </span>
+                                <span class="meal-suggest-status-context">Based on your log for this date</span>
+                            </div>
+
+                            {% set over_goal = meal_recommendations.remaining_calories < 0 %}
+                            {% set remain_abs = meal_recommendations.remaining_calories|abs %}
+                            <div class="row g-2 g-md-3 mb-3 meal-suggest-metrics">
+                                <div class="col-4">
+                                    <div class="meal-suggest-metric text-center">
+                                        <div class="meal-suggest-metric-label">Target</div>
+                                        <div class="meal-suggest-metric-value">{{ "%.0f"|format(meal_recommendations.daily_goal_kcal) }}</div>
+                                        <div class="meal-suggest-metric-unit">kcal</div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="meal-suggest-metric text-center">
+                                        <div class="meal-suggest-metric-label">Logged</div>
+                                        <div class="meal-suggest-metric-value">{{ "%.0f"|format(meal_recommendations.consumed_calories) }}</div>
+                                        <div class="meal-suggest-metric-unit">kcal</div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="meal-suggest-metric text-center">
+                                        <div class="meal-suggest-metric-label">{% if over_goal %}Over by{% else %}Remaining{% endif %}</div>
+                                        <div class="meal-suggest-metric-value">{{ "%.0f"|format(remain_abs) }}</div>
+                                        <div class="meal-suggest-metric-unit">kcal</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if meal_recommendations.macro_summary %}
+                            <div class="meal-suggest-macros mb-4">
+                                <div class="meal-suggest-macros-label">Macros</div>
+                                <p class="meal-suggest-macros-text mb-0">{{ meal_recommendations.macro_summary }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if meal_recommendations.preferences_summary %}
+                            <p class="meal-suggest-prefs small text-muted mb-3">Preferences: {{ meal_recommendations.preferences_summary }}</p>
+                            {% endif %}
+
+                            <h3 class="meal-suggest-ideas-title mb-3">Ideas for what to eat next</h3>
+                            <ol class="list-unstyled meal-suggest-list mb-0">
+                                {% for s in meal_recommendations.suggestions %}
+                                <li class="meal-suggest-item">
+                                    <span class="meal-suggest-item-num" aria-hidden="true">{{ loop.index }}</span>
+                                    <div class="meal-suggest-item-body">
+                                        <div class="meal-suggest-item-head">
+                                            <span class="meal-suggest-item-title">{{ s.title }}</span>
+                                            {% if s.kcal_estimate is not none %}
+                                            <span class="meal-suggest-item-kcal">~{{ s.kcal_estimate }} kcal</span>
+                                            {% endif %}
+                                        </div>
+                                        <p class="meal-suggest-item-detail mb-0">{{ s.detail }}</p>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ol>
+
+                            <hr class="meal-suggest-disclaimer-divider my-4">
+                            <p class="meal-suggest-disclaimer small mb-0">{{ meal_recommendations.disclaimer }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
     {% if entries %}
     <script type="application/json" id="day-entries-json">{{ entries | tojson }}</script>
     <div class="table-responsive border rounded-3 shadow-sm mb-4 food-log-day-table-wrap overflow-hidden">
@@ -188,7 +288,36 @@
 </div>
 
 <script>
-    window.addEventListener('load', () => {
+        window.addEventListener('load', () => {
+        const goalInput = document.getElementById('daily-goal-input');
+        const mealSuggestForm = document.getElementById('meal-suggest-form');
+        function formatDailyGoalInput(value) {
+            const n = parseFloat(value);
+            if (!Number.isFinite(n)) return value;
+            return (Math.round(n * 100) / 100).toFixed(2);
+        }
+        if (goalInput) {
+            if (goalInput.value) {
+                goalInput.value = formatDailyGoalInput(goalInput.value);
+            } else {
+                try {
+                    const g = localStorage.getItem('dailyCalorieGoal');
+                    if (g) goalInput.value = formatDailyGoalInput(g);
+                } catch (e) { /* ignore */ }
+            }
+            goalInput.addEventListener('blur', () => {
+                if (goalInput.value) goalInput.value = formatDailyGoalInput(goalInput.value);
+            });
+        }
+        if (mealSuggestForm && goalInput) {
+            mealSuggestForm.addEventListener('submit', () => {
+                try {
+                    if (goalInput.value) {
+                        localStorage.setItem('dailyCalorieGoal', formatDailyGoalInput(goalInput.value));
+                    }
+                } catch (e) { /* ignore */ }
+            });
+        }
         const DAY_ISO = {{ day_iso|tojson }};
         const WEEK_ANCHOR = {{ week_anchor|tojson }};
         const jsonEl = document.getElementById('day-entries-json');

@@ -13,99 +13,160 @@
 {% block main_padding %}py-3 py-md-4{% endblock %}
 
 {% block main %}
-    <section class="position-relative py-3 py-md-4">
+    <section class="profile-page position-relative py-3 py-md-4">
         <div class="container">
             <div class="row mb-3 mb-md-4">
-                <div class="col-12 col-lg-10 col-xl-9 text-center mx-auto pt-lg-0">
+                <div class="col-12 col-lg-10 col-xl-9 text-center mx-auto pt-lg-0 profile-hero">
                     <h1 class="profile-page-title">Personal Information</h1>
-                    <p class="profile-page-subtitle mx-auto">Fill in your info to estimate daily calories (TDEE + workout calories)</p>
+                    <p class="profile-page-subtitle mx-auto mb-0">
+                        Fill in your info to estimate daily calories (TDEE + workout calories)
+                    </p>
                 </div>
             </div>
             <div class="row d-flex justify-content-center">
                 <div class="col-12 col-lg-10 col-xl-9">
-                    <div class="card mb-3">
-                        <div class="card-body shadow-sm d-flex flex-column align-items-stretch p-3 p-lg-4">
-                            <form id="profile-form" method="post" class="w-100">
-                                <div class="row gy-3 gx-3 gx-lg-5 align-items-start">
-                                    <div class="col-12 col-md-6 pe-lg-4 profile-info-split">
-                                        <div class="text-start mb-3">
-                                            <div class="profile-section-title">Basic information</div>
-                                        </div>
-
-                                        <div class="text-start mb-3">
-                                            <label class="form-label fw-semibold">Gender:</label>
-                                            <select name="gender" class="form-control" required>
-                                                <option value="">Select gender</option>
-                                                <option value="male">Male</option>
-                                                <option value="female">Female</option>
-                                            </select>
-                                        </div>
-                                        
-                                        <div class="text-start mb-3">
-                                            <label class="form-label fw-semibold">Age:</label>
-                                            <input type="number" name="age" class="form-control" placeholder="1-160" min="1" max="160" required>
-                                        </div>
-                                        
-                                        <div class="text-start mb-3">
-                                            <label class="form-label fw-semibold">Height (cm):</label>
-                                            <input type="number" step="0.1" name="height" class="form-control" placeholder="e.g., 175.5" min="0.1" required>
-                                        </div>
-                                        
-                                        <div class="text-start mb-3">
-                                            <label class="form-label fw-semibold">Weight (kg):</label>
-                                            <input type="number" step="0.1" name="weight" class="form-control" placeholder="e.g., 70.5" min="0.1" required>
+                    <div class="card mb-3 food-log-visual-card profile-main-card">
+                        <div class="profile-main-card-accent" aria-hidden="true"></div>
+                        <div class="card-body profile-main-card-body p-3 p-md-4 p-lg-4">
+                            <header class="profile-main-card-header mb-4">
+                                <h2 class="food-log-section-title profile-main-card-title mb-2">Daily calorie estimate</h2>
+                                <p class="profile-main-card-lead mb-0">
+                                    TDEE plus modeled workout burn from your session stats. After you tap
+                                    <strong>Predict daily calories</strong>, you will see your target and
+                                    <strong>diet suggestions</strong> built from your form inputs and that number. For advice tied to foods you already logged, use
+                                    <strong>Food log</strong> and open a single day.
+                                </p>
+                            </header>
+                            <form id="profile-form" method="post" class="profile-form w-100">
+                                <div class="row g-3 g-lg-4 align-items-stretch">
+                                    <div class="col-12 col-md-6 profile-info-split">
+                                        <div class="profile-form-panel h-100">
+                                            <h3 class="profile-section-title">Basic information</h3>
+                                            <div class="profile-field">
+                                                <label class="profile-field-label" for="pf-gender">Gender</label>
+                                                <select name="gender" id="pf-gender" class="form-control profile-form-control" required>
+                                                    <option value="">Select gender</option>
+                                                    <option value="male">Male</option>
+                                                    <option value="female">Female</option>
+                                                </select>
+                                            </div>
+                                            <div class="profile-field">
+                                                <label class="profile-field-label" for="pf-age">Age</label>
+                                                <input type="number" name="age" id="pf-age" class="form-control profile-form-control" placeholder="1–160" min="1" max="160" required>
+                                            </div>
+                                            <div class="profile-field">
+                                                <label class="profile-field-label" for="pf-height">Height (cm)</label>
+                                                <input type="number" step="0.1" name="height" id="pf-height" class="form-control profile-form-control" placeholder="e.g. 175.5" min="0.1" required>
+                                            </div>
+                                            <div class="profile-field mb-0">
+                                                <label class="profile-field-label" for="pf-weight">Weight (kg)</label>
+                                                <input type="number" step="0.1" name="weight" id="pf-weight" class="form-control profile-form-control" placeholder="e.g. 70.5" min="0.1" required>
+                                            </div>
                                         </div>
                                     </div>
-
-                                    <div class="col-12 col-md-6 ps-lg-4">
-                                        <div class="text-start mb-3">
-                                            <div class="profile-section-title">Workout information</div>
-                                        </div>
-
-                                        <div class="text-start mb-3">
-                                            <label class="form-label fw-semibold">Daily activity level:</label>
-                                            <select name="activity_level" class="form-control" required>
-                                                <option value="sedentary">Sedentary (little/no exercise)</option>
-                                                <option value="light">Light (1-3 days/week)</option>
-                                                <option value="moderate" selected>Moderate (3-5 days/week)</option>
-                                                <option value="active">Active (6-7 days/week)</option>
-                                                <option value="very_active">Very active (physical job / intense training)</option>
-                                            </select>
-                                        </div>
-
-                                        <div class="text-start mb-3">
-                                            <label class="form-label fw-semibold">Workout duration (minutes):</label>
-                                            <input type="number" step="1" name="duration" class="form-control" placeholder="e.g., 30" min="1" required>
-                                        </div>
-
-                                        <div class="text-start mb-3">
-                                            <label class="form-label fw-semibold">Heart rate (bpm):</label>
-                                            <input type="number" step="0.1" name="heart_rate" class="form-control" placeholder="e.g., 120" min="0.1" required>
-                                        </div>
-
-                                        <div class="text-start mb-3">
-                                            <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                                                <label class="form-label fw-semibold mb-0" for="profile-body-temp">Body temperature (°C):</label>
-                                                <button type="button" class="btn btn-link profile-field-help-btn p-0 text-decoration-none"
-                                                    id="profile-body-temp-help"
-                                                    aria-label="About body temperature">
-                                                    <span class="profile-field-help-icon" aria-hidden="true">ⓘ</span>
-                                                </button>
+                                    <div class="col-12 col-md-6">
+                                        <div class="profile-form-panel h-100">
+                                            <h3 class="profile-section-title">Workout information</h3>
+                                            <div class="profile-field">
+                                                <label class="profile-field-label" for="pf-activity">Daily activity level</label>
+                                                <select name="activity_level" id="pf-activity" class="form-control profile-form-control" required>
+                                                    <option value="sedentary">Sedentary (little/no exercise)</option>
+                                                    <option value="light">Light (1–3 days/week)</option>
+                                                    <option value="moderate" selected>Moderate (3–5 days/week)</option>
+                                                    <option value="active">Active (6–7 days/week)</option>
+                                                    <option value="very_active">Very active (physical job / intense training)</option>
+                                                </select>
                                             </div>
-                                            <input type="number" step="0.1" name="body_temp" id="profile-body-temp" class="form-control" placeholder="e.g., 36.6" min="36" max="37.2" required>
-                                        </div>
-                                        <div id="profile-body-temp-help-html" class="d-none" aria-hidden="true">
-                                            <p class="small mb-0 text-start profile-body-temp-help-text" dir="ltr">Enter a resting value within the normal human body temperature range (36.0–37.2 °C). Workout calories are estimated mostly from heart rate and duration; temperature is secondary, so small changes here often move the result only slightly, and the API rounds to two decimals.</p>
+                                            <div class="profile-field">
+                                                <label class="profile-field-label" for="pf-duration">Workout duration (minutes)</label>
+                                                <input type="number" step="1" name="duration" id="pf-duration" class="form-control profile-form-control" placeholder="e.g. 30" min="1" required>
+                                            </div>
+                                            <div class="profile-field">
+                                                <label class="profile-field-label" for="pf-hr">Heart rate (bpm)</label>
+                                                <input type="number" step="0.1" name="heart_rate" id="pf-hr" class="form-control profile-form-control" placeholder="e.g. 120" min="0.1" required>
+                                            </div>
+                                            <div class="profile-field mb-0">
+                                                <label class="profile-field-label profile-field-label--row" for="profile-body-temp">
+                                                    <span>Body temperature (°C)</span>
+                                                    <button type="button" class="btn btn-link profile-field-help-btn p-0 text-decoration-none" id="profile-body-temp-help" aria-label="About body temperature">
+                                                        <span class="profile-field-help-icon" aria-hidden="true">ⓘ</span>
+                                                    </button>
+                                                </label>
+                                                <input type="number" step="0.1" name="body_temp" id="profile-body-temp" class="form-control profile-form-control" placeholder="e.g. 36.6" min="36" max="37.2" required>
+                                            </div>
+                                            <div id="profile-body-temp-help-html" class="d-none" aria-hidden="true">
+                                                <p class="small mb-0 profile-body-temp-help-text" dir="ltr">Resting value within 36.0–37.2 °C. Heart rate and duration drive workout calories; temperature has a smaller effect.</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <div class="mb-2">
-                                    <button class="btn btn-success d-block w-100 fw-semibold btn-cta-green" type="submit">Predict daily calories</button>
+                                <div class="profile-submit-wrap">
+                                    <button class="btn btn-success d-block w-100 fw-semibold btn-cta-green profile-submit-btn" type="submit">Predict daily calories</button>
                                 </div>
                             </form>
-                            
-                            <div id="result-message" class="mt-2 w-100"></div>
+                            <div id="result-message" class="profile-result-slot mt-3 w-100" aria-live="polite"></div>
+                            <div id="profile-meal-plan-slot" class="w-100"></div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-3 food-log-visual-card profile-prefs-card">
+                        <div class="profile-main-card-accent" aria-hidden="true"></div>
+                        <div class="card-body profile-main-card-body p-3 p-md-4 p-lg-4">
+                            <header class="profile-main-card-header mb-4">
+                                <h2 class="food-log-section-title profile-main-card-title mb-2">Personalized intake</h2>
+                                <p class="profile-prefs-intro mb-0">
+                                    Set diet preferences below, then tap <strong>Customize calorie recommendations</strong> after you have predicted daily calories.
+                                </p>
+                            </header>
+                            <form id="meal-prefs-form" class="profile-form-panel profile-prefs-panel row g-3 g-lg-4 mb-0">
+                                <div class="col-12 col-md-6">
+                                    <div class="profile-field">
+                                        <label class="profile-field-label" for="pref-diet">Diet style</label>
+                                        <select id="pref-diet" class="form-control profile-form-control">
+                                            <option value="omnivore">Omnivore</option>
+                                            <option value="vegetarian">Vegetarian</option>
+                                            <option value="vegan">Vegan</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="profile-field">
+                                        <label class="profile-field-label" for="pref-goal">Body goal</label>
+                                        <select id="pref-goal" class="form-control profile-form-control">
+                                            <option value="lose">Fat loss</option>
+                                            <option value="maintain" selected>Maintain weight</option>
+                                            <option value="gain">Gain weight / muscle</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="profile-field">
+                                        <label class="profile-field-label" for="pref-spicy">Spice</label>
+                                        <select id="pref-spicy" class="form-control profile-form-control">
+                                            <option value="either">No preference</option>
+                                            <option value="yes">Prefer spicy</option>
+                                            <option value="no">Prefer mild</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="profile-field">
+                                        <label class="profile-field-label" for="pref-fav">Favorite foods (optional)</label>
+                                        <input type="text" id="pref-fav" class="form-control profile-form-control" placeholder="e.g. salmon, oats">
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="profile-field mb-0">
+                                        <label class="profile-field-label" for="pref-avoid">Restrictions / avoid (optional)</label>
+                                        <input type="text" id="pref-avoid" class="form-control profile-form-control" placeholder="e.g. shellfish, dairy">
+                                    </div>
+                                </div>
+                            </form>
+                            <div class="profile-submit-wrap">
+                                <button type="button" id="customize-meal-btn" class="btn btn-success w-100 fw-semibold btn-cta-green profile-submit-btn">Customize calorie recommendations</button>
+                            </div>
+                            <div id="profile-customize-status" class="profile-customize-status mt-2" aria-live="polite"></div>
+                            <div id="profile-customize-plan-slot" class="mt-3 w-100"></div>
                         </div>
                     </div>
                 </div>
@@ -114,114 +175,226 @@
     </section>
 
     <script>
+        const FETCH_TIMEOUT_MS = 70000;
+        const LS_GOAL = 'dailyCalorieGoal';
+        const LS_PREFS = 'mealPreferences';
+        const LS_CTX = 'profileMealPlanContext';
+
+        function fetchWithTimeout(url, options = {}) {
+            const ctrl = new AbortController();
+            const t = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
+            return fetch(url, { ...options, signal: ctrl.signal })
+                .finally(() => clearTimeout(t));
+        }
+
+        function readPrefsFromForm() {
+            return {
+                diet_style: document.getElementById('pref-diet').value,
+                body_goal: document.getElementById('pref-goal').value,
+                spicy: document.getElementById('pref-spicy').value,
+                favorites: document.getElementById('pref-fav').value.trim(),
+                restrictions: document.getElementById('pref-avoid').value.trim(),
+            };
+        }
+
+        function savePrefsToStorage() {
+            const p = readPrefsFromForm();
+            localStorage.setItem(LS_PREFS, JSON.stringify(p));
+            return p;
+        }
+
+        function loadPrefsFromStorage() {
+            try {
+                const raw = localStorage.getItem(LS_PREFS);
+                if (!raw) return;
+                const p = JSON.parse(raw);
+                if (p.diet_style) document.getElementById('pref-diet').value = p.diet_style;
+                if (p.body_goal) document.getElementById('pref-goal').value = p.body_goal;
+                if (p.spicy) document.getElementById('pref-spicy').value = p.spicy;
+                if (p.favorites) document.getElementById('pref-fav').value = p.favorites;
+                if (p.restrictions) document.getElementById('pref-avoid').value = p.restrictions;
+            } catch (e) { /* ignore */ }
+        }
+
+        function profilePayloadFromForm() {
+            const f = document.getElementById('profile-form');
+            return {
+                gender: f.gender.value,
+                age: parseInt(f.age.value, 10),
+                height: parseFloat(f.height.value),
+                weight: parseFloat(f.weight.value),
+                activity_level: f.activity_level.value,
+                duration: parseFloat(f.duration.value),
+                heart_rate: parseFloat(f.heart_rate.value),
+                body_temp: parseFloat(f.body_temp.value),
+            };
+        }
+
+        function validateMealPlanContext() {
+            const p = profilePayloadFromForm();
+            if (!p.gender || !p.age || !p.height || !p.weight || !p.activity_level) {
+                return { ok: false, msg: 'Fill in basic info (gender, age, height, weight, activity).' };
+            }
+            let daily = window._lastDailyCalories;
+            if (!daily) {
+                const stored = localStorage.getItem(LS_GOAL);
+                if (stored) daily = parseFloat(stored);
+            }
+            if (!daily || daily < 800) {
+                return { ok: false, msg: 'Predict daily calories first (or refresh after a previous prediction).' };
+            }
+            return { ok: true, payload: { ...p, daily_calories: daily } };
+        }
+
+        function renderProfileMealPlan(plan, targetId) {
+            if (!plan || !plan.meals) return '';
+            const mealsHtml = plan.meals.map((m) => `
+                <div class="profile-meal-block mb-3">
+                    <div class="d-flex justify-content-between align-items-baseline gap-2 mb-1">
+                        <span class="fw-semibold">${escapeHtml(m.label || m.key)}</span>
+                        <span class="text-muted small">${m.kcal ? m.kcal + ' kcal' : ''}</span>
+                    </div>
+                    <p class="small mb-0 text-secondary">${escapeHtml(m.description || '')}</p>
+                </div>
+            `).join('');
+            const note = plan.ai_note ? `<p class="small text-warning mb-2">${escapeHtml(plan.ai_note)}</p>` : '';
+            const src = plan.source === 'gemini' ? 'AI-customized' : 'Rule-based';
+            return `
+                <div class="profile-meal-plan-card mt-3 p-3 rounded-3">
+                    <div class="food-log-section-title mb-2">Customized meal plan <span class="badge text-bg-secondary ms-1">${src}</span></div>
+                    ${note}
+                    <p class="small text-muted">${escapeHtml(plan.intro || '')}</p>
+                    ${plan.preferences_summary ? `<p class="small"><strong>Preferences:</strong> ${escapeHtml(plan.preferences_summary)}</p>` : ''}
+                    ${mealsHtml}
+                    <p class="small text-muted mt-2 mb-0">${escapeHtml(plan.disclaimer || '')}</p>
+                </div>
+            `;
+        }
+
+        function escapeHtml(s) {
+            return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function mountPlan(plan) {
+            const html = renderProfileMealPlan(plan);
+            const top = document.getElementById('profile-meal-plan-slot');
+            const bottom = document.getElementById('profile-customize-plan-slot');
+            if (top) top.innerHTML = html;
+            if (bottom) bottom.innerHTML = html;
+            bottom?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
         window.addEventListener('load', () => {
+            loadPrefsFromStorage();
+            ['pref-diet','pref-goal','pref-spicy','pref-fav','pref-avoid'].forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('change', savePrefsToStorage);
+                if (el && el.tagName === 'INPUT') el.addEventListener('blur', savePrefsToStorage);
+            });
+
             const helpBtn = document.getElementById('profile-body-temp-help');
             const helpSrc = document.getElementById('profile-body-temp-help-html');
-            if (!helpBtn || !helpSrc || typeof bootstrap === 'undefined' || !bootstrap.Popover) return;
-            if (bootstrap.Popover.getInstance(helpBtn)) return;
-            new bootstrap.Popover(helpBtn, {
-                title: 'Body temperature',
-                html: true,
-                sanitize: false,
-                content: helpSrc.innerHTML,
-                trigger: 'hover focus',
-                placement: 'auto',
-                container: 'body',
-                customClass: 'profile-body-temp-popover',
-            });
-        });
-
-        document.getElementById('profile-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const formData = {
-                gender: e.target.gender.value,
-                age: parseInt(e.target.age.value),
-                height: parseFloat(e.target.height.value),
-                weight: parseFloat(e.target.weight.value),
-                activity_level: e.target.activity_level.value,
-                duration: parseFloat(e.target.duration.value),
-                heart_rate: parseFloat(e.target.heart_rate.value),
-                body_temp: parseFloat(e.target.body_temp.value),
-            };
-            
-            // Validation
-            if (!formData.gender || !formData.age || !formData.height || !formData.weight || !formData.duration || !formData.heart_rate || !formData.body_temp) {
-                document.getElementById('result-message').innerHTML = 
-                    '<div class="alert alert-danger">Please fill in all fields</div>';
-                return;
-            }
-            
-            if (formData.age < 1 || formData.age > 160) {
-                document.getElementById('result-message').innerHTML = 
-                    '<div class="alert alert-danger">Please enter a valid age (1-160)</div>';
-                return;
-            }
-
-            if (formData.height <= 0 || formData.weight <= 0 || formData.duration <= 0 || formData.heart_rate <= 0 || formData.body_temp <= 0) {
-                document.getElementById('result-message').innerHTML =
-                    '<div class="alert alert-danger">All numeric values must be positive</div>';
-                return;
-            }
-            
-            if (formData.height < 50 || formData.height > 300) {
-                document.getElementById('result-message').innerHTML = 
-                    '<div class="alert alert-danger">Please enter a valid height (50-300 cm)</div>';
-                return;
-            }
-            
-            if (formData.weight < 10 || formData.weight > 500) {
-                document.getElementById('result-message').innerHTML = 
-                    '<div class="alert alert-danger">Please enter a valid weight (10-500 kg)</div>';
-                return;
-            }
-
-            if (formData.duration < 1 || formData.duration > 600) {
-                document.getElementById('result-message').innerHTML =
-                    '<div class="alert alert-danger">Please enter a valid workout duration (1-600 minutes)</div>';
-                return;
-            }
-
-            if (formData.heart_rate > 250) {
-                document.getElementById('result-message').innerHTML =
-                    '<div class="alert alert-danger">Please enter a valid heart rate (0-250 bpm)</div>';
-                return;
-            }
-
-            if (formData.body_temp < 36 || formData.body_temp > 37.2) {
-                document.getElementById('result-message').innerHTML =
-                    '<div class="alert alert-danger">Please enter a resting temperature within the normal human body temperature range (36.0–37.2 °C).</div>';
-                return;
-            }
-            
-            try {
-                const response = await fetch('/api/calorie-needs', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
+            if (helpBtn && helpSrc && typeof bootstrap !== 'undefined' && bootstrap.Popover) {
+                new bootstrap.Popover(helpBtn, {
+                    title: 'Body temperature',
+                    html: true,
+                    sanitize: false,
+                    content: helpSrc.innerHTML,
+                    trigger: 'hover focus',
+                    placement: 'auto',
+                    container: 'body',
                 });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    document.getElementById('result-message').innerHTML =
-                        `<div class="alert alert-success">
-                            <div class="fw-semibold mb-1">Prediction</div>
-                            <div>Daily calories (TDEE + workout): <span class="fw-bold">${result.daily_calories}</span> kcal/day</div>
-                            <div class="mt-2 small text-muted">
-                              BMR: ${result.bmr} • Activity factor: ${result.activity_factor} • TDEE: ${result.tdee} • Workout: ${result.exercise_calories} kcal
-                            </div>
-                         </div>`;
-                } else {
-                    document.getElementById('result-message').innerHTML = 
-                        '<div class="alert alert-danger">Error: ' + result.message + '</div>';
-                }
-            } catch (error) {
-                document.getElementById('result-message').innerHTML = 
-                    '<div class="alert alert-danger">Network error, please try again</div>';
             }
+
+            document.getElementById('profile-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = profilePayloadFromForm();
+                const slot = document.getElementById('result-message');
+                if (!formData.gender || !formData.age || !formData.height || !formData.weight) {
+                    slot.innerHTML = '<div class="alert alert-danger">Please fill in all fields</div>';
+                    return;
+                }
+                if (formData.body_temp < 36 || formData.body_temp > 37.2) {
+                    slot.innerHTML = '<div class="alert alert-danger">Body temperature must be 36.0–37.2 °C.</div>';
+                    return;
+                }
+                slot.innerHTML = '<div class="alert alert-info">Calculating…</div>';
+                try {
+                    const response = await fetchWithTimeout('/api/calorie-needs', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'same-origin',
+                        body: JSON.stringify(formData),
+                    });
+                    const result = await response.json();
+                    if (response.ok) {
+                        window._lastDailyCalories = result.daily_calories;
+                        localStorage.setItem(LS_GOAL, String(result.daily_calories));
+                        localStorage.setItem(LS_CTX, JSON.stringify({
+                            ...formData,
+                            daily_calories: result.daily_calories,
+                        }));
+                        document.getElementById('profile-meal-plan-slot').innerHTML = '';
+                        slot.innerHTML = `
+                            <div class="alert alert-success profile-result profile-result--success">
+                                <p class="profile-result-label mb-1">Your estimated daily intake</p>
+                                <p class="profile-kcal-display mb-2">
+                                    <span class="profile-kcal-value">${result.daily_calories}</span>
+                                    <span class="profile-kcal-unit">kcal / day</span>
+                                </p>
+                                <div class="row g-2 profile-metric-chips">
+                                    <div class="col-6 col-md-3"><span class="profile-metric-label">BMR</span> ${result.bmr}</div>
+                                    <div class="col-6 col-md-3"><span class="profile-metric-label">Activity</span> ${result.activity_factor}</div>
+                                    <div class="col-6 col-md-3"><span class="profile-metric-label">TDEE</span> ${result.tdee}</div>
+                                    <div class="col-6 col-md-3"><span class="profile-metric-label">Workout</span> ${result.exercise_calories} kcal</div>
+                                </div>
+                                <p class="profile-result-footnote small mb-0 mt-2">Saved in your browser for meal suggestions on Food log days.</p>
+                            </div>`;
+                    } else {
+                        slot.innerHTML = `<div class="alert alert-danger">Error: ${escapeHtml(result.message)}</div>`;
+                    }
+                } catch (err) {
+                    slot.innerHTML = '<div class="alert alert-danger">Network error or timeout. Try again.</div>';
+                }
+            });
+
+            document.getElementById('customize-meal-btn').addEventListener('click', async () => {
+                const status = document.getElementById('profile-customize-status');
+                const v = validateMealPlanContext();
+                if (!v.ok) {
+                    status.innerHTML = `<span class="text-danger">${escapeHtml(v.msg)}</span>`;
+                    return;
+                }
+                const prefs = savePrefsToStorage();
+                const body = {
+                    ...v.payload,
+                    preferences: prefs,
+                };
+                status.textContent = 'Generating your personalized day with AI…';
+                document.getElementById('profile-customize-plan-slot').innerHTML = '';
+                try {
+                    const response = await fetchWithTimeout('/api/profile-meal-plan', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'same-origin',
+                        body: JSON.stringify(body),
+                    });
+                    const result = await response.json();
+                    if (response.ok && result.profile_meal_plan) {
+                        status.textContent = 'Done.';
+                        mountPlan(result.profile_meal_plan);
+                    } else {
+                        status.innerHTML = `<span class="text-danger">${escapeHtml(result.message || result.error || 'Could not build plan')}</span>`;
+                    }
+                } catch (err) {
+                    status.innerHTML = '<span class="text-danger">Request timed out or failed. Check login and gemini_api_key.</span>';
+                }
+            });
+
+            try {
+                const ctx = JSON.parse(localStorage.getItem(LS_CTX) || 'null');
+                if (ctx && ctx.daily_calories) window._lastDailyCalories = ctx.daily_calories;
+            } catch (e) { /* ignore */ }
         });
     </script>
 {% endblock %}

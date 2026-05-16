@@ -1,7 +1,7 @@
 import requests
 from aiohttp import ClientSession, ClientError
 from functools import wraps
-from quart import redirect, render_template, url_for, session
+from quart import redirect, render_template, url_for, session, request, jsonify
 from functools import wraps
 
 
@@ -33,6 +33,10 @@ def login_required(f):
     @wraps(f)
     async def decorated_function(*args, **kwargs):
         if "user_id" not in session:
+            if request.path.startswith("/api/"):
+                return jsonify(
+                    {"error": "Unauthorized", "message": "Please log in."}
+                ), 401
             return redirect(url_for("login"))
         return await f(*args, **kwargs)
 
