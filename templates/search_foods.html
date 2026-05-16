@@ -1,139 +1,192 @@
 {% extends "layout.html" %}
 
-{% block title %}
-Results
+{% block head %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
 {% endblock %}
 
+{% block title %}Search Food{% endblock %}
+
+{% block main_padding %}py-3 py-md-4{% endblock %}
+
 {% block main %}
+<section class="search-foods-page position-relative py-2 py-md-3">
+    <div class="container">
+        <div class="row mb-3 mb-md-4">
+            <div class="col-12 col-lg-10 col-xl-9 text-center mx-auto">
+                <h1 class="profile-page-title search-foods-page-title">Search Food</h1>
+                <p class="profile-page-subtitle mx-auto search-foods-page-subtitle">
+                    {% if query %}
+                    <span class="search-foods-subtitle-line search-foods-subtitle-line--nowrap">Search results for <strong>{{ query }}</strong></span>
+                    {% else %}
+                    <span class="search-foods-subtitle-line search-foods-subtitle-lead">Run a search from the home page to browse foods and open a full nutrition label.</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
 
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 col-xl-9">
+                <div class="card border-0 shadow-sm mb-3 search-foods-main-card">
+                    <div class="card-body p-3 p-lg-4 d-flex flex-column align-items-stretch">
+                        <div class="search-foods-filters-wrap mb-2 mb-md-3">
+                            <div class="profile-section-title mb-3">Data type</div>
+                            <ul class="nav nav-tabs search-foods-tabs border-0 flex-nowrap flex-md-wrap pb-1 align-items-center justify-content-center justify-content-md-start" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" href="#">All</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#">Branded</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#">Foundation</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#">Survey (FNDDS)</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#">SR Legacy</a>
+                                </li>
+                            </ul>
+                        </div>
 
-<h1 id="results">{{ "Search results for "}}<strong>{{query or None}}</strong></h1>
-<ul class="nav nav-tabs">
-    <li class="nav-item">
-        <a class="nav-link active" href="#">All</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="#">Branded</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="#">Foundation</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="#">Survey (FNDDS)</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="#">SR Legacy</a>
-    </li>
-</ul>
-<div class="list-group" id="foods-container">
-</div>
-<div id="loader" class="loader">
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
+                        <div id="loader" class="search-foods-loader text-center py-4" style="display: none;">
+                            <div class="spinner-border search-foods-spinner text-success" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <div class="small text-muted mt-2 search-foods-loader-caption">Fetching foods…</div>
+                        </div>
+
+                        <div class="list-group list-group-flush search-foods-results border rounded-3 overflow-hidden" id="foods-container"></div>
+
+                        <p class="search-foods-footer-note small text-muted text-center mb-0 mt-3">Data from <a class="link-secondary" href="https://fdc.nal.usda.gov/" target="_blank" rel="noopener">USDA FoodData Central</a>.</p>
+
+                        <nav id="pagination-container" class="mt-2 pt-2" aria-label="Page navigation">
+                            <ul class="pagination search-foods-pagination justify-content-center flex-wrap mb-0">
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('search', q=query) }}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
-<nav id="pagination-container" aria-label="Page navigation">
-    <ul class="pagination justify-content-center">
-
-        <li class="page-item">
-            <a class="page-link" href="{{ url_for('search', q=query) }}" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-            </a>
-        </li>
-        <!-- ADD PAGE NUMBERS ITEMS here -->
-    </ul>
-</nav>
-
+</section>
 
 <script>
     const getEl = (element) => document.querySelector(element);
 
-    // global state variables   
-    const query = "{{ query }}";
+    const query = {{ (query or '')|tojson }};
     let page = 1;
     const dataType = [];
 
-    // obtain elements
     const $foodsContainer = getEl("#foods-container");
-    const $navLinks = document.querySelectorAll(".nav-link");
-    const $loader = getEl('#loader')
-    const $pagination = getEl("ul.pagination");
-
+    const $navLinks = document.querySelectorAll(".search-foods-tabs .nav-link");
+    const $loader = getEl('#loader');
+    const $pagination = getEl(".search-foods-pagination");
 
     const nutrientNumbers = {
-        protein: 203, // protein
-        fat: 204, // fat
-        carbs: 205, // carbs
-        calories: 208, // calories
+        protein: 203,
+        fat: 204,
+        carbs: 205,
+        calories: 208,
     };
 
     function addEventListener() {
-        const $pageLinks = document.querySelectorAll(".page-link");
         $navLinks.forEach(tab => {
             tab.addEventListener("click", selectTab);
         });
-        $pageLinks.forEach(pageItem => {
-            pageItem.addEventListener("click", handlePaginationClick);
-        });
+        const pag = document.getElementById("pagination-container");
+        if (pag && !pag.dataset.delegationBound) {
+            pag.dataset.delegationBound = "1";
+            pag.addEventListener("click", handlePaginationClick);
+        }
     }
 
     async function selectTab(event) {
-        event.preventDefault(); // prevent default behavior of the anchor tag
+        event.preventDefault();
         $navLinks.forEach(tab => {
-            tab.classList.remove("active")
-        }); // remove active class from all tabs
-
-        event.target.classList.add("active"); // add active class to the clicked tab
-        dataType[0] = event.target.textContent; // set the data type to the text content of the clicked tab
+            tab.classList.remove("active");
+        });
+        event.target.classList.add("active");
+        dataType[0] = event.target.textContent.trim();
+        page = 1;
         const data = await fetchFoodData(dataType);
         renderFoodData(data);
-        initializePopovers();
+        if (data && Array.isArray(data.foods) && data.foods.length > 0 && !data.error) {
+            initializePopovers();
+            renderPagination(data.totalPages);
+            document.querySelectorAll(".search-foods-pagination .page-item").forEach((el) => el.classList.remove("active"));
+            const second = document.querySelector(".search-foods-pagination li:nth-child(2)");
+            if (second) second.classList.add("active");
+        }
     }
 
     async function fetchFoodData(dataType = []) {
-        // remove every child in the food container 
         while ($foodsContainer.firstChild) {
             $foodsContainer.removeChild($foodsContainer.firstChild);
         }
         $loader.style.display = "block";
         try {
-            const baseUrl = `/api/search_foods?query=${query}`;
+            const baseUrl = `/api/search_foods?query=${encodeURIComponent(query)}`;
             const pageParam = `&page=${page}`;
-            const dataTypeParam = dataType.length === 0 || dataType.includes("All") ? "" : `&dataType=${dataType}`;
-            const url = `${baseUrl}${dataTypeParam}${pageParam}`;
+            const url = `${baseUrl}${pageTypeParam()}${pageParam}`;
             const response = await fetch(url);
+            const data = await response.json().catch(() => ({}));
             if (!response.ok) {
-                throw new Error("Network response was not ok");
+                return {
+                    ...data,
+                    error: data.error || `Search request failed (${response.status}).`,
+                    foods: Array.isArray(data.foods) ? data.foods : [],
+                    totalPages: data.totalPages || 0,
+                };
             }
-            const data = await response.json();
             return data;
         } catch (error) {
             console.error("Error:", error);
-            return null;
-        }
-        finally {
+            return { error: "Network error while contacting USDA.", foods: [], totalPages: 0 };
+        } finally {
             $loader.style.display = "none";
         }
     }
 
+    function pageTypeParam() {
+        const dt = dataType[0];
+        if (!dt || dt === "All") return "";
+        return `&dataType=${encodeURIComponent(dt)}`;
+    }
+
     async function handlePaginationClick(event) {
+        const link = event.target.closest(".page-link");
+        if (!link || !event.currentTarget.contains(link)) return;
         event.preventDefault();
-        page = Number(event.target.textContent);
+        const text = link.textContent.trim();
+        const num = Number(text);
+        if (!Number.isFinite(num)) return;
+        page = num;
         const data = await fetchFoodData(dataType);
         renderFoodData(data);
+        if (data && Array.isArray(data.foods) && data.foods.length > 0 && !data.error) {
+            initializePopovers();
+        }
 
-        // Remove active class from all pagination items
-        const $pageItems = document.querySelectorAll(".page-item");
+        const $pageItems = document.querySelectorAll(".search-foods-pagination .page-item");
         $pageItems.forEach(item => {
             item.classList.remove("active");
         });
-        // finally add the current active class to the clicked item
-        event.target.parentElement.classList.add("active");
+        link.parentElement.classList.add("active");
     }
 
-
     function renderPagination(totalPages) {
-        // const url = new URL(window.location.href);
+        const tp = Math.max(1, Number(totalPages) || 1);
+        while ($pagination.children.length > 1) {
+            $pagination.removeChild($pagination.lastChild);
+        }
         if (page !== 1 && page + 10 > 11) {
             const li = document.createElement("li");
             li.classList.add("page-item");
@@ -141,14 +194,12 @@ Results
             a.classList.add("page-link");
             a.setAttribute("aria-label", "1");
             a.innerHTML = '<span aria-hidden="true">1</span>';
-
             li.appendChild(a);
             $pagination.appendChild(li);
         }
         for (let p = page; p <= page + 10; p++) {
-            if (p > 0 && p <= totalPages) {
+            if (p > 0 && p <= tp) {
                 const li = document.createElement("li");
-
                 li.classList.add("page-item");
                 const a = document.createElement("a");
                 a.classList.add("page-link");
@@ -157,87 +208,107 @@ Results
                 $pagination.appendChild(li);
             }
         }
-        if (page < totalPages) {
+        if (page < tp) {
             const li = document.createElement("li");
             li.classList.add("page-item");
             const a = document.createElement("a");
             a.classList.add("page-link");
             a.setAttribute("aria-label", "Next");
             a.innerHTML = '<span aria-hidden="true">&raquo;</span>';
-            // url.searchParams.set('page', page + 1);
-            // a.href = url.toString();
             li.appendChild(a);
             $pagination.appendChild(li);
         }
-
     }
 
     function renderFoodData(data) {
+        const escHtml = (s) => String(s)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+
+        if (!data) {
+            $foodsContainer.innerHTML = '<div class="search-foods-empty search-foods-msg p-4 text-center">No results loaded.</div>';
+            return;
+        }
+        if (data.error) {
+            $foodsContainer.innerHTML =
+                '<div class="alert alert-warning m-3 mb-0 text-start small search-foods-msg">' + escHtml(data.error) + '</div>';
+            return;
+        }
+        if (!Array.isArray(data.foods)) {
+            $foodsContainer.innerHTML = '<div class="search-foods-empty search-foods-msg p-4 text-center">No results loaded.</div>';
+            return;
+        }
+        if (data.foods.length === 0) {
+            $foodsContainer.innerHTML = '<div class="search-foods-empty search-foods-msg p-4 text-center">No foods matched this query.</div>';
+            return;
+        }
         const { foods } = data;
 
+        const attrEscape = (s) => String(s)
+            .replace(/&/g, "&amp;")
+            .replace(/"/g, "&quot;");
+
         const results = foods.map(food => {
-    const { foodCategory, description, foodNutrients } = food;
+            const { foodCategory, description } = food;
+            const foodNutrients = food.foodNutrients || [];
 
-    const nutrients = {
-        calories: foodNutrients.find(n => Number(n.nutrientNumber) === nutrientNumbers.calories)?.value || "N/A",
-        protein: foodNutrients.find(n => Number(n.nutrientNumber) === nutrientNumbers.protein)?.value || "N/A",
-        fat: foodNutrients.find(n => Number(n.nutrientNumber) === nutrientNumbers.fat)?.value || "N/A",
-        carbs: foodNutrients.find(n => Number(n.nutrientNumber) === nutrientNumbers.carbs)?.value || "N/A",
-    };
+            const nutrients = {
+                calories: foodNutrients.find(n => Number(n.nutrientNumber) === nutrientNumbers.calories)?.value || "N/A",
+                protein: foodNutrients.find(n => Number(n.nutrientNumber) === nutrientNumbers.protein)?.value || "N/A",
+                fat: foodNutrients.find(n => Number(n.nutrientNumber) === nutrientNumbers.fat)?.value || "N/A",
+                carbs: foodNutrients.find(n => Number(n.nutrientNumber) === nutrientNumbers.carbs)?.value || "N/A",
+            };
 
-        return `
-            <form action="/food/${food.fdcId}" method="get" class="food-form">
-                <button type="button" class="btn btn-sm btn-outline-primary" id="quick-info" data-bs-toggle="popover" data-bs-title="Calories and macros" data-bs-content='
-                    <div class="container">
-                        <div class="row">
-                            <div class="col">
-                                <small>Calories: </small><strong>${nutrients.calories}${nutrients.calories !== "N/A" ? "kcal" : ""}</strong>
-                                <small>Protein: </small><strong>${nutrients.protein}${nutrients.protein !== "N/A" ? "g" : ""}</strong>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                <small>Total lipid (fat): </small><strong>${nutrients.fat}${nutrients.fat !== "N/A" ? "g" : ""}</strong>
-                                <small>Carbs: </small><strong>${nutrients.carbs}${nutrients.carbs !== "N/A" ? "g" : ""}</strong>
-                            </div>
-                        </div>
-                    </div>'>Quick Info</button>
-                <button type="submit" class="list-group-item list-group-item-action">
-                    <h2 class="mb-1 text-center" id="food-description">${description}</h2>
-                    <em class="text-left">${foodCategory}</em>
-                </button>
+            const popContent =
+                '<div class="small text-start">' +
+                "<div><strong>Calories:</strong> " + escHtml(nutrients.calories) + (nutrients.calories !== "N/A" ? " kcal" : "") + "</div>" +
+                "<div><strong>Protein:</strong> " + escHtml(nutrients.protein) + (nutrients.protein !== "N/A" ? " g" : "") + "</div>" +
+                "<div><strong>Fat:</strong> " + escHtml(nutrients.fat) + (nutrients.fat !== "N/A" ? " g" : "") + "</div>" +
+                "<div><strong>Carbs:</strong> " + escHtml(nutrients.carbs) + (nutrients.carbs !== "N/A" ? " g" : "") + "</div>" +
+                "</div>";
+
+            return `
+            <form action="/food/${food.fdcId}" method="get" class="search-foods-item food-form list-group-item px-0 py-0 border-0">
+                <div class="search-foods-item-inner d-flex align-items-stretch gap-2 gap-md-3 p-3">
+                    <button type="submit" class="search-foods-submit-btn flex-grow-1 text-start btn btn-link text-decoration-none p-0 border-0 shadow-none">
+                        <span class="search-foods-item-title d-block fw-semibold">${escHtml(description)}</span>
+                        <span class="search-foods-item-cat d-block small text-muted mt-1">${escHtml(foodCategory || "")}</span>
+                    </button>
+                    <button type="button" class="search-foods-quick-btn btn btn-sm btn-outline-success align-self-center flex-shrink-0"
+                        data-bs-toggle="popover" data-bs-title="Per 100 g (typical)" data-bs-content="${attrEscape(popContent)}">Quick info</button>
+                </div>
             </form>
         `;
-    }).join("");
+        }).join("");
 
-    $foodsContainer.innerHTML = results;
-
+        $foodsContainer.innerHTML = results || '<div class="search-foods-empty search-foods-msg p-4 text-center">No foods in this page.</div>';
     }
 
     function initializePopovers() {
-        const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-        popoverTriggerList.forEach(popoverTriggerEl => {
+        document.querySelectorAll(".search-foods-quick-btn[data-bs-toggle=\"popover\"]").forEach((popoverTriggerEl) => {
+            const existing = bootstrap.Popover.getInstance(popoverTriggerEl);
+            if (existing) existing.dispose();
             new bootstrap.Popover(popoverTriggerEl, {
                 html: true,
-                trigger: 'hover'
+                trigger: "hover",
+                customClass: "search-foods-popover",
             });
         });
     }
 
-
-
     async function init() {
         const data = await fetchFoodData();
 
-
-        if (data) {
-            renderFoodData(data);
+        renderFoodData(data);
+        if (data && Array.isArray(data.foods) && data.foods.length > 0 && !data.error) {
             initializePopovers();
             renderPagination(data.totalPages);
-            getEl('.pagination li:nth-child(2)').classList.add("active");   
+            const second = document.querySelector('.search-foods-pagination li:nth-child(2)');
+            if (second) second.classList.add("active");
         }
         addEventListener();
-
     }
 
     document.addEventListener('DOMContentLoaded', init);

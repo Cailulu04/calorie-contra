@@ -1,37 +1,146 @@
-{% extends "layout.html" %} {% block title %} Calorie Log {% endblock %} {%
-block main %}
-<!-- Form to select the date -->
-<form method="GET" action="/food-log">
-    <label for="selected_date" id="select-date-label">Select Date:</label>
-    <div class="input-group d-flex justify-content-center mb-4">
-        <input class="form-control" type="date" id="selected_date" name="selected_date" value="{{ selected_date }}" />
-        <button class="btn btn-primary" type="submit">Submit</button>
+{% extends "layout.html" %}
+
+{% block head %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block title %}Calorie Log{% endblock %}
+
+{% block main_padding %}py-3 py-md-4{% endblock %}
+
+{% block main %}
+<section class="food-log-page position-relative py-2 py-md-3">
+    <div class="container">
+        <div class="row food-log-hero-row mb-2 mb-md-3">
+            <div class="col-12 col-lg-10 col-xl-9 text-center mx-auto">
+                <h1 class="profile-page-title food-log-page-title">Calorie Log</h1>
+                <p class="profile-page-subtitle mx-auto food-log-page-subtitle">
+                    <span class="food-log-subtitle-inner">
+                        <span class="food-log-subtitle-line">Click a day&rsquo;s bar to see each food you logged that day, or edit and delete entries.</span>
+                    </span>
+                </p>
+            </div>
+        </div>
+
+        <div class="row justify-content-center mb-4">
+            <div class="col-12 col-md-10 col-lg-8 col-xl-7">
+                <form method="GET" action="{{ url_for('food_log') }}" class="food-log-date-form card border-0 shadow-sm">
+                    <div class="card-body py-3 px-3 px-md-4 d-flex flex-column flex-sm-row align-items-stretch align-items-sm-end justify-content-center gap-2 gap-sm-3">
+                        <div class="flex-grow-1 flex-sm-grow-0 text-start">
+                            <label for="selected_date" class="form-label small fw-semibold text-secondary mb-1">Week containing</label>
+                            <input class="form-control" type="date" id="selected_date" name="selected_date" value="{{ selected_date }}" />
+                        </div>
+                        <button class="btn btn-success fw-semibold btn-cta-green px-4" type="submit">Update week</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if week_days %}
+        <div class="row justify-content-center">
+            <div class="col-12 col-xl-11">
+                <div class="card food-log-visual-card border-0 shadow">
+                    <div class="card-body p-3 p-md-4 p-lg-5">
+                        <div class="food-log-visual-section">
+                            <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-2">
+                                <h2 class="food-log-section-title mb-0">Weekly intake</h2>
+                                <span class="food-log-section-hint text-muted small">Tap a column &middot; day detail</span>
+                            </div>
+                            <p class="food-log-chart-legend text-muted small mb-3 mb-md-4">
+                                <span class="food-log-legend-item"><i class="food-log-legend-swatch cal-stack-fat"></i> Fat</span>
+                                <span class="food-log-legend-item"><i class="food-log-legend-swatch cal-stack-carb"></i> Carbs</span>
+                                <span class="food-log-legend-item"><i class="food-log-legend-swatch cal-stack-prot"></i> Protein</span>
+                                <span class="food-log-legend-item"><i class="food-log-legend-swatch cal-stack-other"></i> Other kcal</span>
+                                <span class="d-none d-md-inline ms-md-2">&mdash; bar height = total kcal that day</span>
+                            </p>
+                            <div class="food-log-cal-chart rounded-4 p-3 p-md-4">
+                                {% if week_trend %}
+                                <div class="food-log-cal-grid">
+                                    <svg class="food-log-trend-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                                        <defs>
+                                            <linearGradient id="foodLogTrendFill" x1="0" x2="0" y1="0" y2="1">
+                                                <stop offset="0%" stop-color="rgb(22, 101, 52)" stop-opacity="0.14" />
+                                                <stop offset="100%" stop-color="rgb(22, 101, 52)" stop-opacity="0.02" />
+                                            </linearGradient>
+                                        </defs>
+                                        {% set trend_area = '0,90 ' ~ week_trend.polyline_points ~ ' 100,90' %}
+                                        <polygon class="food-log-trend-area" fill="url(#foodLogTrendFill)" points="{{ trend_area }}" />
+                                        {% for gy in week_trend.grid_ys %}
+                                        <line class="food-log-trend-grid" x1="0" y1="{{ gy }}" x2="100" y2="{{ gy }}" vector-effect="non-scaling-stroke" />
+                                        {% endfor %}
+                                        <polyline class="food-log-trend-line" fill="none" points="{{ week_trend.polyline_points }}" vector-effect="non-scaling-stroke" />
+                                        {% for dot in week_trend.dots %}
+                                        <circle class="food-log-trend-dot" cx="{{ dot.x }}" cy="{{ dot.y }}" r="1.35" vector-effect="non-scaling-stroke" />
+                                        {% endfor %}
+                                        {% for gl in week_trend.grid_labels %}
+                                        <text class="food-log-trend-ytext" text-anchor="end" dominant-baseline="middle" x="99.2" y="{{ week_trend.grid_ys[loop.index0] }}">{{ gl }}</text>
+                                        {% endfor %}
+                                    </svg>
+                                    {% for d in week_days %}
+                                    {% set h_pct = (d.total_calories / cal_bar_max * 100) if cal_bar_max else 0 %}
+                                    <a class="cal-day-link text-decoration-none text-center"
+                                        style="grid-column: {{ loop.index }}; grid-row: 2;"
+                                        href="{{ url_for('food_log_day') }}?date={{ d.date_iso }}&week_anchor={{ week_anchor }}">
+                                        <span class="cal-day-kcal">{{ "%.0f"|format(d.total_calories) }}<span class="cal-day-kcal-unit"> kcal</span></span>
+                                        <div class="cal-day-bar-track w-100 d-flex align-items-end justify-content-center">
+                                            {% if d.total_calories > 0 %}
+                                            <div class="cal-day-bar-column" style="height: {{ [h_pct, 100]|min }}%;">
+                                                <div class="cal-day-bar-stack">
+                                                    <span class="cal-stack cal-stack-fat" style="flex: {{ '%.8f'|format(d.stack.fat) }} 1 0;"></span>
+                                                    <span class="cal-stack cal-stack-carb" style="flex: {{ '%.8f'|format(d.stack.carb) }} 1 0;"></span>
+                                                    <span class="cal-stack cal-stack-prot" style="flex: {{ '%.8f'|format(d.stack.prot) }} 1 0;"></span>
+                                                    <span class="cal-stack cal-stack-other" style="flex: {{ '%.8f'|format(d.stack.other) }} 1 0;"></span>
+                                                </div>
+                                            </div>
+                                            {% else %}
+                                            <span class="cal-day-bar-fill--empty" style="height: {{ [h_pct, 100]|min }}%;"></span>
+                                            {% endif %}
+                                        </div>
+                                        <span class="cal-day-label">
+                                            <span class="cal-day-weekday">{{ d.weekday[:3] }}</span>
+                                            <span class="cal-day-date text-muted">{{ d.date_iso[5:] }}</span>
+                                        </span>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <div class="food-log-cal-chart-inner d-flex align-items-end justify-content-between gap-1 gap-md-2">
+                                    {% for d in week_days %}
+                                    {% set h_pct = (d.total_calories / cal_bar_max * 100) if cal_bar_max else 0 %}
+                                    <a class="cal-day-link flex-fill d-flex flex-column align-items-center text-decoration-none text-center"
+                                        href="{{ url_for('food_log_day') }}?date={{ d.date_iso }}&week_anchor={{ week_anchor }}">
+                                        <span class="cal-day-kcal">{{ "%.0f"|format(d.total_calories) }}<span class="cal-day-kcal-unit"> kcal</span></span>
+                                        <div class="cal-day-bar-track w-100 d-flex align-items-end justify-content-center">
+                                            {% if d.total_calories > 0 %}
+                                            <div class="cal-day-bar-column" style="height: {{ [h_pct, 100]|min }}%;">
+                                                <div class="cal-day-bar-stack">
+                                                    <span class="cal-stack cal-stack-fat" style="flex: {{ '%.8f'|format(d.stack.fat) }} 1 0;"></span>
+                                                    <span class="cal-stack cal-stack-carb" style="flex: {{ '%.8f'|format(d.stack.carb) }} 1 0;"></span>
+                                                    <span class="cal-stack cal-stack-prot" style="flex: {{ '%.8f'|format(d.stack.prot) }} 1 0;"></span>
+                                                    <span class="cal-stack cal-stack-other" style="flex: {{ '%.8f'|format(d.stack.other) }} 1 0;"></span>
+                                                </div>
+                                            </div>
+                                            {% else %}
+                                            <span class="cal-day-bar-fill--empty" style="height: {{ [h_pct, 100]|min }}%;"></span>
+                                            {% endif %}
+                                        </div>
+                                        <span class="cal-day-label">
+                                            <span class="cal-day-weekday">{{ d.weekday[:3] }}</span>
+                                            <span class="cal-day-date text-muted">{{ d.date_iso[5:] }}</span>
+                                        </span>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
-</form>
-
-
-<!-- Display the graph using the generated HTML -->
-{{ graph_html|safe }}
-
-
-<!-- JavaScript to auto-play the animation -->
-<script>
-    window.onload = () => {
-        const increaseButton = document.querySelector('button[title="Increase speed"]')
-        const playButton = document.querySelector('button[title="Play"]');
-        const graph = document.querySelector('.animation img');
-        if (graph) {
-            graph.classList.add('img-fluid');
-        }
-
-        if (increaseButton) {
-            increaseButton.click();
-            increaseButton.click();
-        }
-        if (playButton) {
-            playButton.click();
-        }
-
-    } 
-</script>
+</section>
 {% endblock %}

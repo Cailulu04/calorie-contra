@@ -14,18 +14,57 @@
 
 #peekobot-container {
     width: 80vw;
-    max-width: 300px;
+    max-width: 340px;
     border: 1px solid hsl(0, 0%, 90%);
     border-radius: 12px;
     box-shadow: 2px 2px 5px hsl(0, 0%, 60%);
-    padding: 1rem 1rem 2rem 1rem;
+    padding: 0.65rem 1rem 0.65rem 1rem;
     height: var(--peekobot-height);
+    max-height: var(--peekobot-height);
     position: absolute; /* Position it absolutely within the chatbot container */
     right: 2em; /* Align it to the right edge of the chatbot container */
     bottom: 5.5em; /* Adjust bottom to account for the toggle button */
     opacity: 0; /* Start hidden */
     visibility: hidden; /* Start hidden */
     transition: opacity 0.3s ease, visibility 0.3s ease; /* Add transition */
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* allow flex children to shrink for overflow scrolling */
+}
+
+.chat-toolbar-stack {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 0.35rem;
+    width: 100%;
+}
+
+.chat-toolbar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    width: 100%;
+}
+
+.chat-toolbar-row--top .form-select {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.8rem;
+}
+
+.chat-toolbar-row--top .btn {
+    flex: 0 0 auto;
+}
+
+.chat-toolbar-row--actions {
+    gap: 0.4rem;
+}
+
+.chat-toolbar-row--actions .btn {
+    flex: 1 1 0;
+    min-width: 0;
 }
 
 #peekobot-container.visible {
@@ -59,11 +98,14 @@
 }
 
 #peekobot-inner {
-    height: 66%;
-    overflow-y: scroll;
+    /* flex-basis 0% so this pane gets a bounded height and can scroll (1 1 auto follows content height) */
+    flex: 1 1 0%;
+    min-height: 0;
+    overflow-y: auto;
     overflow-x: hidden;
     scroll-behavior: smooth;
     position: relative;
+    -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
@@ -111,6 +153,70 @@
     margin-right: 0;
     margin-left: auto;
     color: hsl(0, 0%, 100%);
+}
+
+/* Estimates from chat: same flow as photo recognition → /api/food-log */
+.chat-loggable-wrap {
+    opacity: 0;
+    transform: translateY(-50%);
+    transition: all 0.3s 0.3s;
+    margin-left: 26px;
+    margin-bottom: 0.5rem;
+    width: 80%;
+    max-width: 100%;
+    text-align: left;
+}
+
+.chat-loggable-card {
+    background: hsl(130 30% 94%);
+    border: 1px solid hsl(130 22% 72%);
+    border-radius: 10px;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.85rem;
+    color: #111;
+}
+
+.chat-loggable-title {
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+    color: hsl(130 35% 22%);
+}
+
+.chat-loggable-date-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.75rem;
+    margin-bottom: 0.35rem;
+}
+
+.chat-loggable-date-row .form-control {
+    width: auto;
+    min-width: 9.5rem;
+}
+
+.chat-loggable-item-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid hsl(0 0% 88%);
+}
+
+.chat-loggable-item:last-child .chat-loggable-item-row {
+    border-bottom: none;
+}
+
+@media (min-width: 380px) {
+    .chat-loggable-item-row {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.food-log-login-tooltip-host {
+    cursor: not-allowed;
 }
 
 .choices {
@@ -187,12 +293,10 @@
     display: flex;
     justify-content: center;
     flex-direction: column;
-    padding: 1rem;
+    flex: 0 0 auto;
+    padding: 0.65rem 0 0;
+    margin-top: 0.25rem;
     border-top: 1px solid hsl(0, 0%, 90%);
-    position: absolute;
-    bottom: 0.5rem;
-    right: 0;
-    left: 0;
 }
 
 #chat-input {

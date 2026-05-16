@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Text, DateTime
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import relationship, sessionmaker, declarative_base
 
@@ -21,6 +21,10 @@ class User(Base):
     hash = Column(String, nullable=False)
 
     food_counts = relationship("FoodCount", back_populates="user")
+    # new added code
+    chat_conversations = relationship("ChatConversation", back_populates="user")
+    #############################################################
+
 
 # Define the FoodCount model
 class FoodCount(Base):
@@ -39,6 +43,37 @@ class FoodCount(Base):
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     user = relationship("User", back_populates="food_counts")
+
+##########################################################################
+class ChatConversation(Base):
+    __tablename__ = "chat_conversations"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    title = Column(String(200), nullable=False, default="New chat")
+    created_at = Column(DateTime, nullable=False)
+    updated_at = Column(DateTime, nullable=False)
+
+    user = relationship("User", back_populates="chat_conversations")
+    messages = relationship(
+        "ChatMessage",
+        back_populates="conversation",
+        cascade="all, delete-orphan",
+        order_by="ChatMessage.id",
+    )
+
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    conversation_id = Column(
+        Integer, ForeignKey("chat_conversations.id"), nullable=False, index=True
+    )
+    role = Column(String(16), nullable=False)
+    body = Column(Text, nullable=False)
+    created_at = Column(DateTime, nullable=False)
+
+    conversation = relationship("ChatConversation", back_populates="messages")
+##########################################################################
 
 # Define the Session model
 class Session(Base):

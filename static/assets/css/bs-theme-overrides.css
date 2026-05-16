@@ -1,6 +1,6 @@
 :root, [data-bs-theme=light] {
-  --bs-primary: #798777;
-  --bs-primary-rgb: 121,135,119;
+  --bs-primary: #4d8f6a;
+  --bs-primary-rgb: 77, 143, 106;
   --bs-primary-text-emphasis: #303630;
   --bs-primary-bg-subtle: #E4E7E4;
   --bs-primary-border-subtle: #C9CFC9;
@@ -21,33 +21,33 @@
 
 .btn-primary {
   --bs-btn-color: #000000;
-  --bs-btn-bg: #798777;
-  --bs-btn-border-color: #798777;
+  --bs-btn-bg: #4d8f6a;
+  --bs-btn-border-color: #4d8f6a;
   --bs-btn-hover-color: #000000;
-  --bs-btn-hover-bg: #8D998B;
-  --bs-btn-hover-border-color: #869385;
-  --bs-btn-focus-shadow-rgb: 18,20,18;
+  --bs-btn-hover-bg: #5fa17a;
+  --bs-btn-hover-border-color: #569672;
+  --bs-btn-focus-shadow-rgb: 24, 48, 36;
   --bs-btn-active-color: #000000;
-  --bs-btn-active-bg: #949F92;
-  --bs-btn-active-border-color: #869385;
+  --bs-btn-active-bg: #569672;
+  --bs-btn-active-border-color: #4a805f;
   --bs-btn-disabled-color: #000000;
-  --bs-btn-disabled-bg: #798777;
-  --bs-btn-disabled-border-color: #798777;
+  --bs-btn-disabled-bg: #4d8f6a;
+  --bs-btn-disabled-border-color: #4d8f6a;
 }
 
 .btn-outline-primary {
-  --bs-btn-color: #798777;
-  --bs-btn-border-color: #798777;
-  --bs-btn-focus-shadow-rgb: 121,135,119;
+  --bs-btn-color: #4d8f6a;
+  --bs-btn-border-color: #4d8f6a;
+  --bs-btn-focus-shadow-rgb: 77, 143, 106;
   --bs-btn-hover-color: #000000;
-  --bs-btn-hover-bg: #798777;
-  --bs-btn-hover-border-color: #798777;
+  --bs-btn-hover-bg: #4d8f6a;
+  --bs-btn-hover-border-color: #4d8f6a;
   --bs-btn-active-color: #000000;
-  --bs-btn-active-bg: #798777;
-  --bs-btn-active-border-color: #798777;
-  --bs-btn-disabled-color: #798777;
+  --bs-btn-active-bg: #4d8f6a;
+  --bs-btn-active-border-color: #4d8f6a;
+  --bs-btn-disabled-color: #4d8f6a;
   --bs-btn-disabled-bg: transparent;
-  --bs-btn-disabled-border-color: #798777;
+  --bs-btn-disabled-border-color: #4d8f6a;
 }
 
 .btn-secondary {
@@ -106,8 +106,8 @@
   --bs-pagination-hover-bg: #E4E7E4; /* Hover background color */
   --bs-pagination-hover-border-color: #C9CFC9; /* Hover border color */
   --bs-pagination-active-color: #FFFFFF; /* Active text color */
-  --bs-pagination-active-bg: #798777; /* Active background color */
-  --bs-pagination-active-border-color: #798777; /* Active border color */
+  --bs-pagination-active-bg: #4d8f6a; /* Active background color */
+  --bs-pagination-active-border-color: #4d8f6a; /* Active border color */
   --bs-pagination-disabled-color: #C9CFC9; /* Disabled text color */
   --bs-pagination-disabled-bg: #F8EDE3; /* Disabled background color */
   --bs-pagination-disabled-border-color: #C9CFC9; /* Disabled border color */

@@ -1,9 +1,20 @@
 *.db
-flask_session
-.DS_store
-__pycache__
-__pycache__/*
-env/
-.env
-*.sql
 *.sqlite
+*.sql
+flask_session/
+.DS_Store
+__pycache__/
+__pycache__/*
+
+# Secrets & local config
+.env
+
+# Virtual environments
+env/
+venv/
+venv_cv/
+.venv/
+
+# IDE & local test assets
+.idea/
+test photo/

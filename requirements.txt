@@ -9,7 +9,11 @@ Werkzeug
 requests
 matplotlib
 numpy
+joblib
+pandas
+scikit-learn==1.6.1
 python-dotenv
 pyt
 sqlalchemy[asyncio]
 inflect
+hypercorn

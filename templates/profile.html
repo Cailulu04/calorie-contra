@@ -1,0 +1,227 @@
+{% extends "layout.html" %}
+
+{% block head %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block title %}
+    Personal Profile
+{% endblock %}
+
+{% block main_padding %}py-3 py-md-4{% endblock %}
+
+{% block main %}
+    <section class="position-relative py-3 py-md-4">
+        <div class="container">
+            <div class="row mb-3 mb-md-4">
+                <div class="col-12 col-lg-10 col-xl-9 text-center mx-auto pt-lg-0">
+                    <h1 class="profile-page-title">Personal Information</h1>
+                    <p class="profile-page-subtitle mx-auto">Fill in your info to estimate daily calories (TDEE + workout calories)</p>
+                </div>
+            </div>
+            <div class="row d-flex justify-content-center">
+                <div class="col-12 col-lg-10 col-xl-9">
+                    <div class="card mb-3">
+                        <div class="card-body shadow-sm d-flex flex-column align-items-stretch p-3 p-lg-4">
+                            <form id="profile-form" method="post" class="w-100">
+                                <div class="row gy-3 gx-3 gx-lg-5 align-items-start">
+                                    <div class="col-12 col-md-6 pe-lg-4 profile-info-split">
+                                        <div class="text-start mb-3">
+                                            <div class="profile-section-title">Basic information</div>
+                                        </div>
+
+                                        <div class="text-start mb-3">
+                                            <label class="form-label fw-semibold">Gender:</label>
+                                            <select name="gender" class="form-control" required>
+                                                <option value="">Select gender</option>
+                                                <option value="male">Male</option>
+                                                <option value="female">Female</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="text-start mb-3">
+                                            <label class="form-label fw-semibold">Age:</label>
+                                            <input type="number" name="age" class="form-control" placeholder="1-160" min="1" max="160" required>
+                                        </div>
+                                        
+                                        <div class="text-start mb-3">
+                                            <label class="form-label fw-semibold">Height (cm):</label>
+                                            <input type="number" step="0.1" name="height" class="form-control" placeholder="e.g., 175.5" min="0.1" required>
+                                        </div>
+                                        
+                                        <div class="text-start mb-3">
+                                            <label class="form-label fw-semibold">Weight (kg):</label>
+                                            <input type="number" step="0.1" name="weight" class="form-control" placeholder="e.g., 70.5" min="0.1" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 ps-lg-4">
+                                        <div class="text-start mb-3">
+                                            <div class="profile-section-title">Workout information</div>
+                                        </div>
+
+                                        <div class="text-start mb-3">
+                                            <label class="form-label fw-semibold">Daily activity level:</label>
+                                            <select name="activity_level" class="form-control" required>
+                                                <option value="sedentary">Sedentary (little/no exercise)</option>
+                                                <option value="light">Light (1-3 days/week)</option>
+                                                <option value="moderate" selected>Moderate (3-5 days/week)</option>
+                                                <option value="active">Active (6-7 days/week)</option>
+                                                <option value="very_active">Very active (physical job / intense training)</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="text-start mb-3">
+                                            <label class="form-label fw-semibold">Workout duration (minutes):</label>
+                                            <input type="number" step="1" name="duration" class="form-control" placeholder="e.g., 30" min="1" required>
+                                        </div>
+
+                                        <div class="text-start mb-3">
+                                            <label class="form-label fw-semibold">Heart rate (bpm):</label>
+                                            <input type="number" step="0.1" name="heart_rate" class="form-control" placeholder="e.g., 120" min="0.1" required>
+                                        </div>
+
+                                        <div class="text-start mb-3">
+                                            <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                                <label class="form-label fw-semibold mb-0" for="profile-body-temp">Body temperature (°C):</label>
+                                                <button type="button" class="btn btn-link profile-field-help-btn p-0 text-decoration-none"
+                                                    id="profile-body-temp-help"
+                                                    aria-label="About body temperature">
+                                                    <span class="profile-field-help-icon" aria-hidden="true">ⓘ</span>
+                                                </button>
+                                            </div>
+                                            <input type="number" step="0.1" name="body_temp" id="profile-body-temp" class="form-control" placeholder="e.g., 36.6" min="36" max="37.2" required>
+                                        </div>
+                                        <div id="profile-body-temp-help-html" class="d-none" aria-hidden="true">
+                                            <p class="small mb-0 text-start profile-body-temp-help-text" dir="ltr">Enter a resting value within the normal human body temperature range (36.0–37.2 °C). Workout calories are estimated mostly from heart rate and duration; temperature is secondary, so small changes here often move the result only slightly, and the API rounds to two decimals.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-2">
+                                    <button class="btn btn-success d-block w-100 fw-semibold btn-cta-green" type="submit">Predict daily calories</button>
+                                </div>
+                            </form>
+                            
+                            <div id="result-message" class="mt-2 w-100"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        window.addEventListener('load', () => {
+            const helpBtn = document.getElementById('profile-body-temp-help');
+            const helpSrc = document.getElementById('profile-body-temp-help-html');
+            if (!helpBtn || !helpSrc || typeof bootstrap === 'undefined' || !bootstrap.Popover) return;
+            if (bootstrap.Popover.getInstance(helpBtn)) return;
+            new bootstrap.Popover(helpBtn, {
+                title: 'Body temperature',
+                html: true,
+                sanitize: false,
+                content: helpSrc.innerHTML,
+                trigger: 'hover focus',
+                placement: 'auto',
+                container: 'body',
+                customClass: 'profile-body-temp-popover',
+            });
+        });
+
+        document.getElementById('profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                gender: e.target.gender.value,
+                age: parseInt(e.target.age.value),
+                height: parseFloat(e.target.height.value),
+                weight: parseFloat(e.target.weight.value),
+                activity_level: e.target.activity_level.value,
+                duration: parseFloat(e.target.duration.value),
+                heart_rate: parseFloat(e.target.heart_rate.value),
+                body_temp: parseFloat(e.target.body_temp.value),
+            };
+            
+            // Validation
+            if (!formData.gender || !formData.age || !formData.height || !formData.weight || !formData.duration || !formData.heart_rate || !formData.body_temp) {
+                document.getElementById('result-message').innerHTML = 
+                    '<div class="alert alert-danger">Please fill in all fields</div>';
+                return;
+            }
+            
+            if (formData.age < 1 || formData.age > 160) {
+                document.getElementById('result-message').innerHTML = 
+                    '<div class="alert alert-danger">Please enter a valid age (1-160)</div>';
+                return;
+            }
+
+            if (formData.height <= 0 || formData.weight <= 0 || formData.duration <= 0 || formData.heart_rate <= 0 || formData.body_temp <= 0) {
+                document.getElementById('result-message').innerHTML =
+                    '<div class="alert alert-danger">All numeric values must be positive</div>';
+                return;
+            }
+            
+            if (formData.height < 50 || formData.height > 300) {
+                document.getElementById('result-message').innerHTML = 
+                    '<div class="alert alert-danger">Please enter a valid height (50-300 cm)</div>';
+                return;
+            }
+            
+            if (formData.weight < 10 || formData.weight > 500) {
+                document.getElementById('result-message').innerHTML = 
+                    '<div class="alert alert-danger">Please enter a valid weight (10-500 kg)</div>';
+                return;
+            }
+
+            if (formData.duration < 1 || formData.duration > 600) {
+                document.getElementById('result-message').innerHTML =
+                    '<div class="alert alert-danger">Please enter a valid workout duration (1-600 minutes)</div>';
+                return;
+            }
+
+            if (formData.heart_rate > 250) {
+                document.getElementById('result-message').innerHTML =
+                    '<div class="alert alert-danger">Please enter a valid heart rate (0-250 bpm)</div>';
+                return;
+            }
+
+            if (formData.body_temp < 36 || formData.body_temp > 37.2) {
+                document.getElementById('result-message').innerHTML =
+                    '<div class="alert alert-danger">Please enter a resting temperature within the normal human body temperature range (36.0–37.2 °C).</div>';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/calorie-needs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('result-message').innerHTML =
+                        `<div class="alert alert-success">
+                            <div class="fw-semibold mb-1">Prediction</div>
+                            <div>Daily calories (TDEE + workout): <span class="fw-bold">${result.daily_calories}</span> kcal/day</div>
+                            <div class="mt-2 small text-muted">
+                              BMR: ${result.bmr} • Activity factor: ${result.activity_factor} • TDEE: ${result.tdee} • Workout: ${result.exercise_calories} kcal
+                            </div>
+                         </div>`;
+                } else {
+                    document.getElementById('result-message').innerHTML = 
+                        '<div class="alert alert-danger">Error: ' + result.message + '</div>';
+                }
+            } catch (error) {
+                document.getElementById('result-message').innerHTML = 
+                    '<div class="alert alert-danger">Network error, please try again</div>';
+            }
+        });
+    </script>
+{% endblock %}

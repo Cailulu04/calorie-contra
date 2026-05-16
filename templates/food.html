@@ -1,31 +1,43 @@
 {% extends "layout.html" %}
 
+{% block head %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+{% endblock %}
+
 {% block title %}
 Nutrition Facts
 {% endblock %}
 
-{% block main %}
+{% block main_padding %}py-3 py-md-4{% endblock %}
 
-<!-- foods description  -->
-<h1 class="display-1 text-center" id="food-description">{{ food.description }}</h1>
-<form class="form-inline" action="/food-log" method="post" onsubmit="handleLogSubmit(event)">
-  <div class="row justify-content-center">
-    <div class="col-5 col-md-2">
-      <input class="form-control" id="serving-size-input" name="calories" placeholder="Serving Size" type="number"
-        min="1" oninput="updateNutrientValues(this.value)">
-    </div>
-    <div class="col-auto">
-      <button id="cta-btn-log" class="btn btn-primary" type="submit">Add to log</button>
-    </div>
-  </div>
-</form>
-<div class="label">
+{% block main %}
+<section class="food-detail-page position-relative py-2 py-md-3">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 col-xl-8">
+                <h1 class="profile-page-title food-detail-title text-center text-break" id="food-description">{{ food.description }}</h1>
+                <form class="food-detail-log-form mb-4" action="/food-log" method="post" onsubmit="handleLogSubmit(event)">
+                    <div class="row g-2 g-md-3 justify-content-center align-items-end">
+                        <div class="col-12 col-sm-8 col-md-5 col-lg-4">
+                            <label class="form-label small fw-semibold text-secondary mb-1 home-query-label" for="serving-size-input">Serving size (g)</label>
+                            <input class="form-control food-detail-serving-input" id="serving-size-input" name="calories" placeholder="e.g. 240" type="number"
+                                min="1" oninput="updateNutrientValues(this.value)">
+                        </div>
+                        <div class="col-12 col-sm-auto d-flex justify-content-center">
+                            <button id="cta-btn-log" class="btn btn-success fw-semibold btn-cta-green px-4" type="submit">Add to log</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="food-detail-label-wrap mx-auto">
+                    <div class="label">
   <header>
     <h2 class="bold" style="padding-top: 0.25em">Nutrition Facts</h2>
     <div class="divider"></div>
     <p class="bold">Serving size
       <span>
-        <select class="form-select form-select-sm" style="width: auto; float: right">
+        <select id="food-portion-select" class="form-select form-select-sm food-detail-portion-select" style="width: auto; float: right">
           {% for portion in food.foodPortions %}
           <option value="{{ portion.gramWeight }}">{{ portion.portionDescription }} ({{ portion.gramWeight }}g)</option>
           {% endfor %}
@@ -131,12 +143,16 @@ Nutrition Facts
       </tr>
     </tbody>
   </table>
-</div>
-<br>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
 <script>
   const getEl = element => document.querySelector(element);
-  const $selectMenu = getEl(".form-select");
+  const $selectMenu = getEl("#food-portion-select");
   const $servingSizeInput = getEl('#serving-size-input');
   // formula for calculating the value of the amount (i.e., the energy, macro and micro nutrients) per serving using a propotion method
   // amount per serving = (amount per 100g) * (serving size in g) / 100
@@ -260,14 +276,17 @@ Nutrition Facts
   };
 
   // initial value of the amount per serving
-  updateNutrientValues($selectMenu.value);
-
-
-  getEl('.form-select').addEventListener('change', function (event) {
-    const selectedValue = event.target.value;
-    $servingSizeInput.value = selectedValue;
-    updateNutrientValues(selectedValue);
-  });
+  if ($selectMenu) {
+    if ($servingSizeInput) {
+      $servingSizeInput.value = $selectMenu.value;
+    }
+    updateNutrientValues($selectMenu.value);
+    $selectMenu.addEventListener('change', function (event) {
+      const selectedValue = event.target.value;
+      $servingSizeInput.value = selectedValue;
+      updateNutrientValues(selectedValue);
+    });
+  }
 
   window.handleLogSubmit = (event) => {
     event.preventDefault();

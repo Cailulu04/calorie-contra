@@ -33,10 +33,12 @@ h1 {
 
 body::before {
   content: "";
-  background-image: url('/static/background.jpg');
+  background-image: url('/static/background-healthy.png');
   background-size: cover;
   background-repeat: no-repeat;
-  opacity: 0.1;
+  background-position: center;
+  filter: saturate(1.05) contrast(1.05);
+  opacity: 0.12;
   position: fixed;
   top: 0;
   left: 0;
@@ -314,4 +316,932 @@ p {
 .input-group {
   width: 250px;
   margin: auto;
+}
+
+/* Personal Information (profile): wider two-column layout */
+@media (min-width: 768px) {
+  .profile-info-split {
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Profile — decorative main title; section titles use accent-bar style below */
+.profile-page-title {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-optical-sizing: auto;
+  font-size: clamp(2.2rem, 5.2vw, 3.1rem);
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.06em;
+  line-height: 1.12;
+  margin-top: 0.4rem;
+  margin-bottom: 0.75rem;
+  color: #14532d;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.65),
+    0 2px 0 rgba(200, 225, 205, 0.55),
+    0 3px 0 rgba(140, 185, 155, 0.35),
+    0 4px 10px rgba(13, 77, 45, 0.22),
+    0 8px 22px rgba(13, 77, 45, 0.12);
+}
+
+.profile-page-subtitle {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-optical-sizing: auto;
+  max-width: 36rem;
+  margin-top: 0.7rem;
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  text-align: center;
+  font-size: clamp(0.95rem, 2.1vw, 1.15rem);
+  font-weight: 500;
+  font-style: italic;
+  letter-spacing: 0.06em;
+  line-height: 1.75;
+  color: #1a5c3a;
+  padding: 0.35rem 0.5rem 0;
+  position: relative;
+}
+
+.profile-page-subtitle::before,
+.profile-page-subtitle::after {
+  content: "";
+  display: block;
+  flex: 1 1 8rem;
+  max-width: 9.5rem;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(22, 101, 52, 0.15),
+    rgba(22, 101, 52, 0.55),
+    rgba(22, 101, 52, 0.15),
+    transparent
+  );
+}
+
+.profile-page-subtitle::before {
+  transform: translateY(1px);
+}
+
+.profile-page-subtitle::after {
+  transform: translateY(1px);
+}
+
+/* Section labels: deep green, high contrast — accent bar + rule (no heavy 3D shadow) */
+.profile-section-title {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-optical-sizing: auto;
+  font-size: clamp(1.15rem, 2.2vw, 1.35rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+  color: #134e2a;
+  margin: 0;
+  padding: 0.15rem 0 0.5rem 0.85rem;
+  border-left: 4px solid #166534;
+  border-bottom: 1px solid rgba(22, 101, 52, 0.28);
+  text-shadow: none;
+}
+
+.profile-field-help-btn {
+  line-height: 1;
+  color: #166534;
+  opacity: 0.88;
+}
+
+.profile-field-help-btn:hover,
+.profile-field-help-btn:focus-visible {
+  opacity: 1;
+  color: #14532d;
+}
+
+.profile-field-help-icon {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.popover.profile-body-temp-popover {
+  max-width: min(22rem, 94vw);
+}
+
+.popover.profile-body-temp-popover .popover-body {
+  text-align: left;
+}
+
+.popover.profile-body-temp-popover .profile-body-temp-help-text {
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+/* ----- Food log: unified week card + interactive calories (matches profile typography) ----- */
+.food-log-page .food-log-page-title.profile-page-title {
+  margin-top: 0.25rem;
+  margin-bottom: 0.85rem;
+}
+
+/* Subtitle sits lower under the title for clearer separation */
+.food-log-page .food-log-page-subtitle.profile-page-subtitle,
+.food-log-day-page .food-log-day-subtitle.profile-page-subtitle {
+  margin-top: 0.65rem;
+  margin-bottom: 0.15rem;
+  padding: 0.1rem 0.35rem 0;
+  gap: 0.5rem;
+  line-height: 1.3;
+  max-width: 40rem;
+}
+
+@media (min-width: 576px) {
+  .food-log-page .food-log-page-subtitle.profile-page-subtitle,
+  .food-log-day-page .food-log-day-subtitle.profile-page-subtitle {
+    gap: 0.65rem;
+  }
+}
+
+.food-log-page .food-log-page-subtitle.profile-page-subtitle::before,
+.food-log-page .food-log-page-subtitle.profile-page-subtitle::after,
+.food-log-day-page .food-log-day-subtitle.profile-page-subtitle::before,
+.food-log-day-page .food-log-day-subtitle.profile-page-subtitle::after {
+  flex: 0 1 4.25rem;
+  max-width: 6rem;
+}
+
+.food-log-page-subtitle .food-log-subtitle-inner,
+.food-log-day-page .food-log-day-subtitle .food-log-subtitle-inner {
+  display: block;
+  max-width: 26.5rem;
+  margin: 0 auto;
+  padding: 0 0.2rem;
+  text-align: center;
+}
+
+.food-log-day-page .food-log-day-subtitle .food-log-day-subtitle-inner {
+  max-width: 38rem;
+}
+
+.food-log-page-subtitle .food-log-subtitle-line,
+.food-log-day-page .food-log-day-subtitle .food-log-subtitle-line {
+  display: block;
+  width: 100%;
+  font-weight: 500;
+  font-style: italic;
+  letter-spacing: 0.042em;
+  line-height: 1.38;
+  font-size: clamp(0.84rem, 1.75vw, 1rem);
+  color: #1a5c3a;
+}
+
+.food-log-day-page .food-log-subtitle-line .food-log-day-help-em {
+  font-weight: 700;
+  font-style: italic;
+  text-transform: none;
+  font-variant: normal;
+  letter-spacing: 0.042em;
+}
+
+.food-log-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-rows: minmax(3.25rem, 4.25rem) minmax(10.5rem, 13rem);
+  column-gap: 0.2rem;
+  row-gap: 0.35rem;
+  align-items: stretch;
+}
+
+@media (min-width: 768px) {
+  .food-log-cal-grid {
+    column-gap: 0.45rem;
+    row-gap: 0.5rem;
+  }
+}
+
+.food-log-trend-svg {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 3.25rem;
+  overflow: visible;
+}
+
+.food-log-trend-grid {
+  stroke: rgba(22, 101, 52, 0.18);
+  stroke-width: 0.35;
+  stroke-dasharray: 1.2 1.8;
+}
+
+.food-log-trend-line {
+  stroke: rgb(21, 83, 45);
+  stroke-width: 0.55;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.food-log-trend-dot {
+  fill: rgb(255, 255, 255);
+  stroke: rgb(21, 83, 45);
+  stroke-width: 0.45;
+}
+
+.food-log-trend-ytext {
+  fill: rgba(22, 101, 52, 0.72);
+  font-size: 2.1px;
+  font-family: "Fraunces", Georgia, serif;
+  font-style: italic;
+}
+
+.food-log-date-form .form-control {
+  min-width: 12rem;
+}
+
+.food-log-visual-card {
+  background: linear-gradient(
+    165deg,
+    #fafdfb 0%,
+    #f0f7f2 42%,
+    #e8f2ec 100%
+  );
+  border: 1px solid rgba(22, 101, 52, 0.12) !important;
+  box-shadow:
+    0 1px 2px rgba(13, 77, 45, 0.04),
+    0 12px 40px rgba(13, 77, 45, 0.08) !important;
+}
+
+.food-log-section-title {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: clamp(1.1rem, 2.4vw, 1.35rem);
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  color: #134e2a;
+}
+
+.food-log-section-hint {
+  letter-spacing: 0.02em;
+}
+
+.food-log-cal-chart {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(236, 252, 242, 0.75) 100%
+  );
+  border: 1px solid rgba(22, 101, 52, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.food-log-cal-chart-inner {
+  min-height: 168px;
+}
+
+.cal-day-link {
+  min-width: 0;
+  max-width: 14%;
+  padding: 0.35rem 0.15rem 0.25rem;
+  border-radius: 0.75rem;
+  color: inherit;
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.food-log-cal-grid .cal-day-link {
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  min-height: 0;
+}
+
+.cal-day-link:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 8px 22px rgba(13, 77, 45, 0.12);
+}
+
+.cal-day-link:focus-visible {
+  outline: 2px solid #166534;
+  outline-offset: 3px;
+}
+
+.cal-day-kcal {
+  display: block;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: clamp(0.82rem, 2.6vw, 1.15rem);
+  font-weight: 700;
+  font-style: italic;
+  color: #14532d;
+  line-height: 1.15;
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.02em;
+}
+
+.cal-day-kcal-unit {
+  font-weight: 600;
+  font-size: 0.85em;
+  opacity: 0.88;
+}
+
+@media (max-width: 575.98px) {
+  .cal-day-kcal-unit {
+    display: none;
+  }
+}
+
+.cal-day-bar-track {
+  min-height: 132px;
+  border-bottom: 2px solid rgba(22, 101, 52, 0.22);
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(22, 101, 52, 0.04) 100%
+  );
+  border-radius: 0.35rem 0.35rem 0 0;
+  padding: 0 2px;
+}
+
+/* Stacked column: fat bottom → … → other top (column-reverse) */
+.cal-day-bar-column {
+  width: 78%;
+  max-width: 52px;
+  min-height: 6px;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+}
+
+.cal-day-bar-stack {
+  display: flex;
+  flex-direction: column-reverse;
+  width: 100%;
+  height: 100%;
+  min-height: 6px;
+  border-radius: 999px 999px 0.25rem 0.25rem;
+  overflow: hidden;
+  box-shadow:
+    0 -2px 14px rgba(22, 101, 52, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.cal-stack {
+  min-height: 1px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.cal-stack-fat {
+  background: linear-gradient(180deg, #fb923c 0%, #ea580c 100%);
+}
+
+.cal-stack-carb {
+  background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+}
+
+.cal-stack-prot {
+  background: linear-gradient(180deg, #c084fc 0%, #7c3aed 100%);
+}
+
+.cal-stack-other {
+  background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%);
+}
+
+.cal-day-link:hover .cal-day-bar-stack {
+  filter: brightness(1.04);
+}
+
+.cal-day-bar-fill--empty {
+  display: block;
+  width: 78%;
+  max-width: 52px;
+  min-height: 5px;
+  opacity: 0.32;
+  border-radius: 999px 999px 0.2rem 0.2rem;
+  background: linear-gradient(180deg, #bbf7d0 0%, #86efac 100%);
+  box-shadow: none;
+}
+
+.food-log-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem 1rem;
+  letter-spacing: 0.02em;
+}
+
+.food-log-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.food-log-legend-swatch {
+  display: inline-block;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.cal-day-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  margin-top: 0.5rem;
+  font-size: clamp(0.62rem, 1.8vw, 0.78rem);
+  line-height: 1.25;
+}
+
+.cal-day-weekday {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #166534;
+  text-transform: uppercase;
+  font-size: 0.72em;
+}
+
+.cal-day-date {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ----- Home: USDA search + photo (align with profile / food log typography) ----- */
+.home-query-page .home-query-page-subtitle.profile-page-subtitle {
+  max-width: 38rem;
+  margin-top: 0.15rem;
+  margin-bottom: 0.35rem;
+}
+
+/* Short hero line: keep on one row where width allows */
+@media (min-width: 400px) {
+  .home-query-page .home-query-page-subtitle--single-line.profile-page-subtitle {
+    white-space: nowrap;
+  }
+}
+
+.home-query-card {
+  background: linear-gradient(
+    165deg,
+    #fafdfb 0%,
+    #f0f7f2 42%,
+    #e8f2ec 100%
+  );
+  border: 1px solid rgba(22, 101, 52, 0.12) !important;
+  box-shadow:
+    0 1px 2px rgba(13, 77, 45, 0.04),
+    0 12px 40px rgba(13, 77, 45, 0.08) !important;
+}
+
+.home-query-search-input {
+  border-radius: 0.65rem;
+  border: 1px solid rgba(22, 101, 52, 0.22);
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+  letter-spacing: 0.02em;
+}
+
+.home-query-search-input:focus {
+  border-color: rgba(22, 101, 52, 0.45);
+  box-shadow: 0 0 0 0.2rem rgba(22, 101, 52, 0.12);
+}
+
+/* Green CTA: same shape/weight as home “Identify from photo” */
+.btn-cta-green {
+  border-radius: 0.55rem;
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+  letter-spacing: 0.03em;
+}
+
+.home-query-file-input {
+  border-radius: 0.55rem;
+  border: 1px solid rgba(22, 101, 52, 0.18);
+}
+
+.home-query-label {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  color: rgba(22, 101, 52, 0.88) !important;
+}
+
+.home-query-lead {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-optical-sizing: auto;
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  color: #1a5c3a !important;
+  max-width: 28rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.home-query-dataset {
+  display: block;
+  letter-spacing: 0.02em;
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: 0.82rem;
+}
+
+.home-query-page #identify-result p {
+  display: block;
+  justify-content: flex-start;
+}
+
+.home-query-preview-wrap {
+  min-height: 12rem;
+  border: 1px dashed rgba(22, 101, 52, 0.28);
+  border-radius: 0.85rem;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(236, 252, 242, 0.55) 100%
+  );
+  padding: 1rem;
+}
+
+.home-query-preview-inner {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.home-query-preview-placeholder {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-style: italic;
+  letter-spacing: 0.03em;
+}
+
+.home-query-preview-img {
+  display: none;
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 0.5rem;
+  box-shadow: 0 6px 24px rgba(13, 77, 45, 0.12);
+}
+
+.home-query-loader {
+  min-height: 42vh;
+}
+
+/* ----- Search foods results page (Fraunces + USDA panel) ----- */
+.search-foods-page .search-foods-page-title.profile-page-title {
+  margin-top: 0.2rem;
+  margin-bottom: 0.35rem;
+}
+
+.search-foods-page .search-foods-page-subtitle.profile-page-subtitle {
+  max-width: 42rem;
+}
+
+.search-foods-page .search-foods-subtitle-line {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: italic;
+  letter-spacing: 0.042em;
+  line-height: 1.45;
+  font-size: clamp(0.88rem, 1.85vw, 1.05rem);
+  color: #1a5c3a;
+}
+
+.search-foods-page .search-foods-subtitle-line--nowrap {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.search-foods-page .search-foods-subtitle-line strong {
+  font-weight: 700;
+  color: #14532d;
+}
+
+.search-foods-page .search-foods-subtitle-lead {
+  display: inline-block;
+  max-width: 36rem;
+}
+
+.search-foods-page .nav.nav-tabs.search-foods-tabs {
+  max-width: none !important;
+  width: 100%;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding: 0.25rem 0 !important;
+  gap: 0.35rem;
+  row-gap: 0.5rem;
+}
+
+.search-foods-page .list-group.search-foods-results {
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.search-foods-main-card {
+  background: linear-gradient(
+    165deg,
+    #fafdfb 0%,
+    #f0f7f2 42%,
+    #e8f2ec 100%
+  );
+  border: 1px solid rgba(22, 101, 52, 0.12) !important;
+  box-shadow:
+    0 1px 2px rgba(13, 77, 45, 0.04),
+    0 12px 40px rgba(13, 77, 45, 0.08) !important;
+}
+
+.search-foods-tabs .nav-item .nav-link {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-weight: 600;
+  font-style: italic;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  color: #166534;
+  border-radius: 999px;
+  padding: 0.42rem 0.85rem;
+  border: 1px solid transparent;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.search-foods-tabs .nav-item .nav-link:hover {
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(22, 101, 52, 0.2);
+}
+
+.search-foods-tabs .nav-item .nav-link.active {
+  background: linear-gradient(180deg, #bbf7d0 0%, #86efac 100%);
+  color: #14532d;
+  border-color: rgba(22, 101, 52, 0.28);
+  box-shadow: 0 2px 10px rgba(13, 77, 45, 0.12);
+}
+
+.search-foods-results .search-foods-item:not(:first-child) .search-foods-item-inner {
+  border-top: 1px solid rgba(22, 101, 52, 0.1);
+}
+
+.search-foods-item .search-foods-item-inner {
+  transition: background 0.15s ease;
+}
+
+.search-foods-item .search-foods-item-inner:hover {
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.search-foods-item-title {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-weight: 600;
+  font-style: italic;
+  font-size: clamp(0.92rem, 1.9vw, 1.1rem);
+  letter-spacing: 0.03em;
+  color: #134e2a;
+}
+
+.search-foods-item-cat {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 0.78rem;
+  font-style: italic;
+  letter-spacing: 0.03em;
+  color: rgba(22, 101, 52, 0.72) !important;
+}
+
+.search-foods-quick-btn {
+  border-radius: 999px;
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.search-foods-loader-caption {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-style: italic;
+  letter-spacing: 0.04em;
+}
+
+.search-foods-pagination .page-link {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: #166534;
+  border-color: rgba(22, 101, 52, 0.22);
+  border-radius: 0.45rem;
+}
+
+.search-foods-pagination .page-item.active .page-link {
+  background: linear-gradient(180deg, #bbf7d0 0%, #86efac 100%);
+  border-color: rgba(22, 101, 52, 0.35);
+  color: #14532d;
+}
+
+.search-foods-msg,
+.search-foods-footer-note {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-style: italic;
+  letter-spacing: 0.03em;
+  color: rgba(22, 101, 52, 0.78);
+}
+
+.search-foods-footer-note {
+  font-size: 0.82rem;
+}
+
+.popover.search-foods-popover .popover-header {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  color: #14532d;
+}
+
+.popover.search-foods-popover .popover-body {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 0.88rem;
+}
+
+/* ----- Food log: single-day detail ----- */
+.food-log-day-page p.food-log-day-empty {
+  display: block;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+
+.food-log-day-breadcrumb .breadcrumb {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.03em;
+}
+
+.food-log-day-breadcrumb .breadcrumb-item a {
+  color: #166534;
+  font-weight: 600;
+}
+
+.food-log-day-title.profile-page-title {
+  font-size: clamp(1.85rem, 4.5vw, 2.65rem);
+  margin-top: 0.15rem;
+  margin-bottom: 0.85rem;
+}
+
+.food-log-day-hero {
+  max-width: 100%;
+}
+
+.food-log-day-totals-card .food-log-day-stat-label {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(22, 101, 52, 0.78);
+  margin-bottom: 0.35rem;
+}
+
+.food-log-day-stat-value {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: clamp(1.35rem, 3.2vw, 1.85rem);
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.03em;
+  color: #14532d;
+  line-height: 1.2;
+}
+
+.food-log-day-stat-value--secondary {
+  font-size: clamp(1.1rem, 2.6vw, 1.45rem);
+}
+
+.food-log-day-stat-unit {
+  font-size: 0.55em;
+  font-weight: 600;
+  opacity: 0.82;
+}
+
+.food-log-day-table-wrap {
+  border-color: rgba(22, 101, 52, 0.14) !important;
+}
+
+.food-log-day-table thead th {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #166534;
+  border-bottom-color: rgba(22, 101, 52, 0.2) !important;
+}
+
+.food-log-day-table tbody td:first-child {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.food-log-day-add-card .card-header .profile-section-title {
+  margin-top: 0.15rem;
+}
+
+/* Contact page: hero subtitle stays on one line */
+.contact-page .contact-page-subtitle .contact-page-subtitle-line {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* ----- Food detail / nutrition label (Fraunces + card) ----- */
+.food-detail-page .food-detail-title.profile-page-title {
+  font-size: clamp(1.65rem, 4.2vw, 2.55rem);
+  margin-top: 0.25rem;
+  margin-bottom: 1rem;
+  line-height: 1.12;
+}
+
+.food-detail-page .food-detail-log-form {
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.food-detail-page .food-detail-serving-input {
+  border-radius: 0.55rem;
+  border: 1px solid rgba(22, 101, 52, 0.22);
+  letter-spacing: 0.02em;
+}
+
+.food-detail-page .food-detail-serving-input:focus {
+  border-color: rgba(22, 101, 52, 0.45);
+  box-shadow: 0 0 0 0.2rem rgba(22, 101, 52, 0.12);
+}
+
+.food-detail-page .food-detail-label-wrap {
+  max-width: 420px;
+  padding: 1.35rem 1.25rem 1.5rem;
+  background: linear-gradient(
+    165deg,
+    #fafdfb 0%,
+    #f0f7f2 38%,
+    #e4efe6 100%
+  );
+  border: 1px solid rgba(22, 101, 52, 0.14);
+  border-radius: 1rem;
+  box-shadow:
+    0 1px 2px rgba(13, 77, 45, 0.06),
+    0 14px 38px rgba(13, 77, 45, 0.1);
+}
+
+.food-detail-page .food-detail-label-wrap .label {
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 0.35rem 10px 0.5rem;
+  border: 2px solid #1a1a1a;
+  border-radius: 0.35rem;
+  background: linear-gradient(180deg, #fffdf7 0%, #faf6ee 100%);
+}
+
+.food-detail-page .food-detail-label-wrap .label header h2 {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+}
+
+.food-detail-page .food-detail-portion-select {
+  border-radius: 0.4rem;
+  border: 1px solid rgba(22, 101, 52, 0.28);
+}
+
+.food-detail-page .calories-info span#energy {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+}
+
+.food-detail-page p.small-info.note {
+  display: block;
+  justify-content: flex-start;
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 0.68rem;
+  font-style: italic;
+  line-height: 1.35;
+  color: #333;
+  margin-top: 0.5rem !important;
+}
+
+.food-detail-page .facts {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 0.72rem;
 }

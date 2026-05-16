@@ -10,13 +10,14 @@
     <link rel="stylesheet" href="../static/assets/css/Navbar-With-Button-icons.css">
     <link rel="stylesheet" href="../static/styles.css">
     <link rel="stylesheet" href="../static/chatbot.css">
+    {% block head %}{% endblock %}
 </head>
 
-<body>
-    <nav class="navbar navbar-expand-md bg-primary py-3" data-bs-theme="dark">
+<body {% if session.get('user_id') %}data-chat-persistent="1"{% else %}data-chat-persistent="0"{% endif %}>
+    <nav class="navbar navbar-expand-md bg-primary py-2" data-bs-theme="dark">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="/home">
-                <span><img src="../static/assets/img/calorie-contra-logo.svg" width="69" height="69"></span>
+            <a class="navbar-brand d-flex align-items-center py-0" href="/home">
+                <span><img src="../static/assets/img/calorie-contra-logo.svg" width="52" height="52" alt="Group 3"></span>
             </a>
             <button data-bs-toggle="collapse" class="navbar-toggler" data-bs-target="#navcol-1">
                 <span class="visually-hidden">Toggle navigation</span>
@@ -25,8 +26,9 @@
             <div class="collapse navbar-collapse" id="navcol-1">
                 <ul class="navbar-nav me-auto">
                     {% if session["user_id"] %}
+                    <li class="nav-item"><a class="nav-link active" href="/profile">Profile</a></li>
                     <li class="nav-item"><a class="nav-link active" href="/food-log">Food log</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
                 </ul>
                 <a class="btn fw-semibold" role="button" href="/logout">Logout</a>
                 {% else %}
@@ -46,7 +48,7 @@
         </div>
     </header>
     {% endif %}
-    <main class="container-fluid py-5 text-center">
+    <main class="container-fluid text-center {% block main_padding %}py-5{% endblock %}">
         {% block main %}{% endblock %}
     </main>
     <div class="chatbot-container">
@@ -61,6 +63,19 @@
                 <path d="m0 0h32v32h-32z" fill="none" />
             </svg></button>
         <div id="peekobot-container">
+            {% if session.get('user_id') %}
+            <div class="chat-toolbar-stack">
+                <div class="chat-toolbar-row chat-toolbar-row--top">
+                    <label class="visually-hidden" for="chat-thread-select">Conversation history</label>
+                    <select id="chat-thread-select" class="form-select form-select-sm"></select>
+                    <button type="button" id="chat-new-thread" class="btn btn-sm btn-outline-secondary text-nowrap">New chat</button>
+                </div>
+                <div class="chat-toolbar-row chat-toolbar-row--actions">
+                    <button type="button" id="chat-delete-thread" class="btn btn-sm btn-outline-danger text-nowrap">Delete this chat</button>
+                    <button type="button" id="chat-delete-all-threads" class="btn btn-sm btn-danger text-nowrap">Delete all chats</button>
+                </div>
+            </div>
+            {% endif %}
             <div id="peekobot-inner">
                 <div id="peekobot"></div>
             </div>
@@ -74,6 +89,11 @@
     <script src="../static/assets/bootstrap/js/bootstrap.min.js"></script>
     <script type="module">
         import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
+        const localDateYYYYMMDD = function () {
+            const d = new Date();
+            const p = function (n) { return String(n).padStart(2, '0'); };
+            return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+        };
         const chat = {
             1: {
                 text: 'Hello! I am your friendly assistant for the Calorie Counter app. I can help you track your calorie intake, provide nutritional information, and answer questions about healthy eating. How can I assist you today?',
@@ -85,7 +105,7 @@
                 ]
             },
             2: {
-                text: 'Calorie contra is a web app that helps you track your daily food intake.',
+                text: 'This is a web app that helps you track your daily food intake.',
                 next: 3
             },
             3: {
@@ -112,10 +132,10 @@
                 text: 'For any questions or feedback, feel free to reach out.',
                 options: [
                     {
-                        text: "Go to GitHub",
-                        url: "https://github.com/jericho1050/calorie-contra"
+                        text: "Got it!",
+                        next: 4
                     }
-                ]
+                ],
             }
         };
 
@@ -126,6 +146,15 @@
             const inner = document.getElementById('peekobot-inner');
             const chatInput = document.getElementById('chat-input');
             const chatSubmit = document.getElementById('chat-submit');
+            const chatPersistent = document.body.dataset.chatPersistent === '1';
+            const threadSelect = document.getElementById('chat-thread-select');
+            const newThreadBtn = document.getElementById('chat-new-thread');
+            const deleteThreadBtn = document.getElementById('chat-delete-thread');
+            const deleteAllThreadsBtn = document.getElementById('chat-delete-all-threads');
+            const foodLogBtnTooltip = 'Please log in to save foods to your Food log.';
+
+            let activeConversationId = null;
+            let chatPanelOpenedOnce = false;
 
             const sleep = function (ms) {
                 return new Promise(resolve => setTimeout(resolve, ms));
@@ -139,6 +168,313 @@
                 peekobot.appendChild(elem);
                 scrollContainer();
                 elem.classList.add('activated');
+            };
+
+            const clearPeekobot = function () {
+                peekobot.innerHTML = '';
+            };
+
+            const appendUserBubble = function (text) {
+                const userMessage = document.createElement('div');
+                userMessage.classList.add('chat-ask');
+                userMessage.textContent = text;
+                insertNewChatItem(userMessage);
+            };
+
+            const appendChatLoggablePanel = function (items) {
+                if (!items || !items.length) return;
+                const wrap = document.createElement('div');
+                wrap.className = 'chat-loggable-wrap';
+                const card = document.createElement('div');
+                card.className = 'chat-loggable-card';
+                const title = document.createElement('div');
+                title.className = 'chat-loggable-title';
+                title.textContent = 'Add to Food log';
+                card.appendChild(title);
+
+                const dateRow = document.createElement('div');
+                dateRow.className = 'chat-loggable-date-row';
+                const lab = document.createElement('label');
+                lab.className = 'form-label small mb-0';
+                lab.textContent = 'Date';
+                const dateInput = document.createElement('input');
+                dateInput.type = 'date';
+                dateInput.className = 'form-control form-control-sm chat-loggable-date';
+                dateInput.value = localDateYYYYMMDD();
+                dateRow.appendChild(lab);
+                dateRow.appendChild(dateInput);
+                card.appendChild(dateRow);
+
+                const ul = document.createElement('ul');
+                ul.className = 'chat-loggable-list list-unstyled mb-0';
+
+                items.forEach(function (it) {
+                    const li = document.createElement('li');
+                    li.className = 'chat-loggable-item';
+                    const row = document.createElement('div');
+                    row.className = 'chat-loggable-item-row';
+                    const meta = document.createElement('div');
+                    meta.className = 'chat-loggable-item-meta flex-grow-1 min-w-0';
+                    const nameEl = document.createElement('div');
+                    nameEl.className = 'fw-semibold text-break';
+                    nameEl.textContent = it.name || 'Food';
+                    const sub = document.createElement('div');
+                    sub.className = 'small text-muted';
+                    const p = Number(it.protein);
+                    const c = Number(it.carbs);
+                    const f = Number(it.fat);
+                    sub.textContent = 'P ' + (Number.isFinite(p) ? p : 0).toFixed(1) + 'g · C '
+                        + (Number.isFinite(c) ? c : 0).toFixed(1) + 'g · F '
+                        + (Number.isFinite(f) ? f : 0).toFixed(1) + 'g';
+                    const badge = document.createElement('div');
+                    badge.className = 'mt-1';
+                    const sp = document.createElement('span');
+                    sp.className = 'badge bg-success';
+                    sp.textContent = (Number(it.calories) || 0) + ' kcal';
+                    badge.appendChild(sp);
+                    meta.appendChild(nameEl);
+                    meta.appendChild(sub);
+                    meta.appendChild(badge);
+                    const btnCol = document.createElement('div');
+                    btnCol.className = 'chat-loggable-btn-col flex-shrink-0';
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'btn btn-primary btn-sm';
+                    btn.textContent = 'Add to Food log';
+                    if (!chatPersistent) {
+                        btn.disabled = true;
+                        const tooltipHost = document.createElement('span');
+                        tooltipHost.className = 'd-inline-block food-log-login-tooltip-host';
+                        tooltipHost.setAttribute('title', foodLogBtnTooltip);
+                        tooltipHost.appendChild(btn);
+                        btnCol.appendChild(tooltipHost);
+                    } else {
+                        btnCol.appendChild(btn);
+                    }
+                    row.appendChild(meta);
+                    row.appendChild(btnCol);
+                    li.appendChild(row);
+                    ul.appendChild(li);
+
+                    if (!chatPersistent) return;
+                    btn.addEventListener('click', async function () {
+                        const food = it.name || 'Food';
+                        const calories = Number(it.calories) || 0;
+                        btn.disabled = true;
+                        const prev = btn.textContent;
+                        btn.textContent = 'Saving…';
+                        try {
+                            const body = {
+                                food: food,
+                                calories: calories,
+                                protein: Number(it.protein) || 0,
+                                carbs: Number(it.carbs) || 0,
+                                fat: Number(it.fat) || 0
+                            };
+                            if (dateInput.value) body.logged_date = dateInput.value;
+                            const res = await fetch('/api/food-log', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                credentials: 'same-origin',
+                                body: JSON.stringify(body)
+                            });
+                            const d = await res.json().catch(function () { return {}; });
+                            if (res.ok && d.ok) {
+                                btn.textContent = 'Saved';
+                                btn.classList.remove('btn-primary');
+                                btn.classList.add('btn-outline-secondary');
+                            } else if (res.status === 401) {
+                                alert(d.error || 'Please log in');
+                                btn.disabled = false;
+                                btn.textContent = prev;
+                            } else {
+                                alert(d.error || 'Could not save');
+                                btn.disabled = false;
+                                btn.textContent = prev;
+                            }
+                        } catch (e) {
+                            console.error(e);
+                            alert('Network error');
+                            btn.disabled = false;
+                            btn.textContent = prev;
+                        }
+                    });
+                });
+
+                card.appendChild(ul);
+                if (!chatPersistent) {
+                    const hint = document.createElement('p');
+                    hint.className = 'small text-muted mb-0 mt-2';
+                    hint.textContent = 'Log in to save these estimates to your Food log.';
+                    card.appendChild(hint);
+                }
+                wrap.appendChild(card);
+                insertNewChatItem(wrap);
+            };
+
+            const appendModelBubble = function (markdownText, loggableItems) {
+                const botResponse = document.createElement('div');
+                botResponse.classList.add('chat-response');
+                botResponse.innerHTML = marked(markdownText || '');
+                insertNewChatItem(botResponse);
+                appendChatLoggablePanel(loggableItems);
+            };
+
+            const fillThreadSelect = function (conversations, activeId) {
+                if (!threadSelect) return;
+                threadSelect.innerHTML = '';
+                (conversations || []).forEach(function (c) {
+                    const opt = document.createElement('option');
+                    opt.value = String(c.id);
+                    opt.textContent = c.title + (c.updated_at ? ' · ' + c.updated_at : '');
+                    if (c.id === activeId) opt.selected = true;
+                    threadSelect.appendChild(opt);
+                });
+            };
+
+            const renderMessagesFromPayload = function (messages) {
+                clearPeekobot();
+                (messages || []).forEach(function (m) {
+                    if (m.role === 'user') {
+                        appendUserBubble(m.text);
+                    } else {
+                        appendModelBubble(m.text);
+                    }
+                });
+            };
+
+            const loadChatBootstrap = async function () {
+                if (!chatPersistent) return;
+                const r = await fetch('/api/chat/bootstrap', { credentials: 'same-origin' });
+                const d = await r.json();
+                if (!d.persistent) return;
+                activeConversationId = d.active_conversation_id;
+                fillThreadSelect(d.conversations, activeConversationId);
+                renderMessagesFromPayload(d.messages);
+                if (!d.messages || d.messages.length === 0) {
+                    appendModelBubble(
+                        'Hello! I am your nutrition assistant for this app. Ask about calories, macros, or your saved food log.'
+                    );
+                }
+            };
+
+            const deleteCurrentThread = async function () {
+                if (!confirm(
+                    'Delete this entire conversation from your list? All messages in this thread will be removed. This cannot be undone.'
+                )) return;
+                if (activeConversationId == null) {
+                    await loadChatBootstrap();
+                }
+                if (activeConversationId == null) {
+                        alert('No chat to delete yet. Send a message first.');
+                        return;
+                    }
+                const r = await fetch(
+                    '/api/chat/conversations/' + encodeURIComponent(activeConversationId),
+                    { method: 'DELETE', credentials: 'same-origin' }
+                );
+                const d = await r.json().catch(function () { return {}; });
+                if (!r.ok) {
+                    alert(d.error || 'Could not delete this chat');
+                    return;
+                }
+                activeConversationId = d.active_conversation_id != null ? d.active_conversation_id : null;
+                await loadChatBootstrap();
+            };
+
+            const deleteAllThreads = async function () {
+                if (!confirm(
+                    'Delete ALL saved chat threads? Every conversation and message will be removed. This cannot be undone.'
+                )) return;
+                const r = await fetch('/api/chat/conversations/all', {
+                    method: 'DELETE',
+                    credentials: 'same-origin'
+                });
+                const d = await r.json().catch(function () { return {}; });
+                if (!r.ok) {
+                    alert(d.error || 'Could not delete chats');
+                    return;
+                }
+                activeConversationId = null;
+                await loadChatBootstrap();
+            };
+
+            const clearCurrentChatHistory = async function () {
+                if (!confirm('Delete all messages in this chat? This cannot be undone.')) return;
+                if (chatPersistent) {
+                    if (activeConversationId == null) {
+                        await loadChatBootstrap();
+                    }
+                    if (activeConversationId == null) {
+                        alert('No conversation to clear yet. Send a message first.');
+                        return;
+                    }
+                    const r = await fetch(
+                        '/api/chat/conversations/' + encodeURIComponent(activeConversationId) + '/messages',
+                        { method: 'DELETE', credentials: 'same-origin' }
+                    );
+                    const d = await r.json().catch(function () { return {}; });
+                    if (!r.ok) {
+                        alert(d.error || 'Could not clear chat');
+                        return;
+                    }
+                    await loadChatBootstrap();
+                    return;
+                }
+                const r = await fetch('/api/chat/guest-history', {
+                    method: 'DELETE',
+                    credentials: 'same-origin'
+                });
+                const d = await r.json().catch(function () { return {}; });
+                if (!r.ok) {
+                    alert(d.error || 'Could not clear chat');
+                    return;
+                }
+                clearPeekobot();
+                startConversation();
+            };
+
+            const startNewChat = async function () {
+                if (!chatPersistent) return;
+                const r = await fetch('/api/chat/conversations', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: '{}'
+                });
+                const d = await r.json();
+                if (!r.ok) {
+                    appendModelBubble('Could not start a new chat: ' + (d.error || r.status));
+                    return;
+                }
+                activeConversationId = d.id;
+                if (threadSelect) {
+                    const opt = document.createElement('option');
+                    opt.value = String(d.id);
+                    opt.textContent = d.title || 'New chat';
+                    opt.selected = true;
+                    threadSelect.insertBefore(opt, threadSelect.firstChild);
+                }
+                clearPeekobot();
+                appendModelBubble('Started a new conversation. What would you like to know?');
+            };
+
+            const activateThread = async function (convId) {
+                if (!chatPersistent || !convId) return;
+                const r = await fetch('/api/chat/conversations/' + encodeURIComponent(convId) + '/activate', {
+                    method: 'POST',
+                    credentials: 'same-origin'
+                });
+                const d = await r.json();
+                if (!r.ok) {
+                    appendModelBubble('Could not open that chat: ' + (d.error || r.status));
+                    return;
+                }
+                activeConversationId = d.active_conversation_id;
+                renderMessagesFromPayload(d.messages);
+                if (!d.messages || d.messages.length === 0) {
+                    appendModelBubble('This conversation is empty. Send a message to continue.');
+                }
             };
 
             const printResponse = async function (step) {
@@ -212,26 +548,32 @@
                 const userInput = chatInput.value.trim();
                 if (!userInput) return;
 
-                const userMessage = document.createElement('div');
-                userMessage.classList.add('chat-ask');
-                userMessage.innerHTML = userInput;
-                insertNewChatItem(userMessage);
-
+                appendUserBubble(userInput);
                 chatInput.value = '';
+
+                const payload = { prompt: userInput };
+                if (chatPersistent && activeConversationId != null) {
+                    payload.conversation_id = activeConversationId;
+                }
 
                 const response = await fetch('/generate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ prompt: userInput })
+                    credentials: 'same-origin',
+                    body: JSON.stringify(payload)
                 });
 
                 const data = await response.json();
-                const botResponse = document.createElement('div');
-                botResponse.classList.add('chat-response');
-                botResponse.innerHTML = marked(data.text);
-                insertNewChatItem(botResponse);
+                if (data.error) {
+                    appendModelBubble('**Error:** ' + data.error);
+                    return;
+                }
+                if (data.conversation_id != null) {
+                    activeConversationId = data.conversation_id;
+                }
+                appendModelBubble(data.text || '', data.loggable_items);
             };
 
             const startConversation = function () {
@@ -242,23 +584,40 @@
                 container.addEventListener('click', handleChoice);
                 chatSubmit.addEventListener('click', handleInputSubmit);
                 chatInput.addEventListener('keypress', function (e) {
-                    if (e.key === 'Enter') {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
                         handleInputSubmit();
                     }
                 });
-                startConversation();
+                if (chatPersistent) {
+                    if (newThreadBtn) newThreadBtn.addEventListener('click', startNewChat);
+                    if (threadSelect) {
+                        threadSelect.addEventListener('change', function () {
+                            activateThread(threadSelect.value);
+                        });
+                    }
+                    if (deleteThreadBtn) deleteThreadBtn.addEventListener('click', deleteCurrentThread);
+                    if (deleteAllThreadsBtn) deleteAllThreadsBtn.addEventListener('click', deleteAllThreads);
+                } else {
+                    startConversation();
+                }
+
+                document.getElementById('chatbot-toggle').addEventListener('click', function () {
+                    const wrap = document.getElementById('peekobot-container');
+                    const willShow = !wrap.classList.contains('visible');
+                    wrap.classList.toggle('visible');
+                    this.classList.toggle('active');
+                    if (willShow && chatPersistent && !chatPanelOpenedOnce) {
+                        chatPanelOpenedOnce = true;
+                        loadChatBootstrap();
+                    }
+                });
             };
 
             init();
         };
 
         bot();
-
-        document.getElementById('chatbot-toggle').addEventListener('click', function () {
-            const container = document.getElementById('peekobot-container');
-            container.classList.toggle('visible');
-            this.classList.toggle('active');
-        });
     </script>
 </body>
 
