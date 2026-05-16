@@ -1,6 +1,6 @@
 # Calorie Contra
 
-Calorie counter and food search web app with USDA search, food log, profile calorie goals, Gemini chatbot, and photo-based food recognition.
+Calorie counter and food search web app with USDA search, food log, profile calorie goals, **personalized meal recommendations**, Gemini chatbot, and photo-based food recognition.
 
 ## Links
 
@@ -43,7 +43,7 @@ Calorie counter and food search web app with USDA search, food log, profile calo
 
    - `SECRET_KEY` — random string for sessions
    - `USDA_API_KEY` — [USDA FDC API key](https://fdc.nal.usda.gov/api-key-signup.html)
-   - `gemini_api_key` — [Google AI Studio](https://aistudio.google.com/apikey) (chat & image features)
+   - `gemini_api_key` — [Google AI Studio](https://aistudio.google.com/apikey) (chat, image recognition, and optional AI meal plans on Profile)
 
 5. **Start server**
 
@@ -82,14 +82,34 @@ git push -u origin main
 
 If you forked the original repo, push to your fork and enable GitHub Pages only if you add a static site later — the app itself still needs Render (or Railway / Fly.io) for the live link.
 
+## Meal recommendations
+
+Three related flows share diet preferences (omnivore / vegetarian / vegan, body goal, spice, favorites, restrictions) via `meal_preferences.py` and rule-based logic in `meal_plan.py`. Profile AI plans use `profile_meal_gemini.py` with a timeout wrapper in `gemini_call.py`.
+
+| Where | What it does |
+|-------|----------------|
+| **Profile → Predict daily calories** | Estimates **BMR**, activity **TDEE**, workout burn (ML model), and **daily kcal** (`POST /api/calorie-needs`). Result is saved in the browser for Food log. |
+| **Profile → Customize calorie recommendations** | Builds a **full-day sample menu** (breakfast / lunch / dinner / snack) from your stats and preferences. Tries **Gemini** first (`POST /api/profile-meal-plan`); falls back to rule-based `build_profile_day_meal_plan` if the API fails or is unavailable. |
+| **Food log → open a day → Meal suggestions** | Compares your **daily target** to **what you already logged** that day. Shows status (below / almost at / over target), target / logged / remaining kcal, macro notes, and numbered “ideas for what to eat next.” Uses `GET /food-log/day?daily_goal=…` or `POST /api/meal-recommend` (JSON). |
+
+**Tips**
+
+- Set a daily target on Profile first, or enter one on the day page (supports **two decimal places**, e.g. `2113.81`).
+- Preferences on Profile are stored in `localStorage` and apply to both Profile customize and Food log suggestions.
+- Suggestions are **general wellness ideas**, not medical advice.
+
 ## Main routes
 
 | Route | Description |
 |-------|-------------|
-| `/home` | Food search (USDA) |
-| `/profile` | Calorie goals & workout estimates |
-| `/food-log` | Daily food log |
+| `/home` | Food search (USDA) and photo identify |
+| `/profile` | Calorie estimate, diet preferences, customized day plan |
+| `/food-log` | Weekly food log |
+| `/food-log/day` | Single-day entries + meal suggestions |
 | `/login`, `/register` | Accounts |
+| `POST /api/calorie-needs` | Profile daily calorie estimate (JSON) |
+| `POST /api/profile-meal-plan` | Full-day meal plan from profile + preferences (JSON) |
+| `POST /api/meal-recommend` | Meal suggestions for one logged day (JSON) |
 | `POST /generate` | Chatbot |
 | `POST /api/analyze-image` | Photo food recognition |
 
