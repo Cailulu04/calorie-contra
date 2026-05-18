@@ -16,7 +16,6 @@ from quart import (
 import requests
 
 # from flask_caching import Cache
-# 删掉原来的 try-except 嵌套，只留这一行
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -55,14 +54,13 @@ from database import (
 
 load_dotenv()
 
-# 强制使用 REST 协议，这是解决 404 最稳定的方案
+
 genai.configure(
-    api_key=os.environ["gemini_api_key"],
+    api_key=os.environ.get("gemini_api_key"),
     transport='rest'
 )
 
-# 使用 gemini-1.5-flash-latest，这是一个更明确的标识符
-#model = genai.GenerativeModel(
+
 
 ######################################################
 gemini_food_image_model = genai.GenerativeModel(
@@ -104,11 +102,15 @@ You are a knowledgeable, friendly nutrition assistant for a calorie-tracking app
 - Do not default every reply to asking for an image.
 - Match the user's language for your main answer: English questions → English prose; Chinese questions → Chinese prose. Follow the latest user message when the language switches.
 - Be concise unless the user asks for more detail.
-- When the user message includes a block labeled [USER_FOOD_LOG_DATA], those lines are authoritative totals from the user's saved food log in this app. Answer using those numbers for the dates shown, in the user's language. Do not ask the user to paste their food log for dates that appear in that block. If a date they ask about is not in the block, say there is no saved log for that day (or that the question is outside the data provided).
+- When the user message includes a block labeled [USER_FOOD_LOG_DATA], those lines are authoritative totals from the user's saved food log in this app. Summarize that data only (totals and items listed). Do not append <<<FOOD_LOG_BLOCKS>>> — the user is reviewing existing logs, not adding new foods. Answer in the user's language. Do not ask them to paste their log for dates already in that block.
 
-STRUCTURED FOOD LOG (enables the in-app "Add to Food log" button — required whenever you give concrete calorie/macro estimates for specific food(s) from the user's description):
-- If you answer solely from [USER_FOOD_LOG_DATA], or you only give general definitions with no portion estimates, or you refuse to estimate: do NOT append this block.
-- When you DO give estimates: you MUST append the block every time. Do NOT skip it because your explanation is in Chinese; the appendix is separate from the language of your main reply.
+FOOD NUTRITION QUESTIONS (营养价值, calories/macros of a food, "how nutritious is X", etc.):
+- When the user names or clearly means a specific food (e.g. 苹果的营养价值, nutrition of banana): your prose MUST include concrete numbers (at least kcal and macros). If they did not give a portion, pick one reasonable default (e.g. per 100g or one medium piece) and state it briefly in the answer.
+- You MUST append <<<FOOD_LOG_BLOCKS>>> for that food every time — never reply with only qualitative bullets and no numbers.
+
+STRUCTURED FOOD LOG (enables the in-app "Add to Food log" button):
+- If you answer solely from [USER_FOOD_LOG_DATA] with no new food estimates, or you refuse to estimate: do NOT append this block.
+- Whenever you give concrete calorie/macro estimates for specific food(s): you MUST append the block. Do NOT skip it because your explanation is in Chinese; the appendix is separate from the language of your main reply.
 - Format rules:
   1) After your markdown answer, add a blank line, then a line containing exactly: <<<FOOD_LOG_BLOCKS>>>
   2) Next line must be the first food's name (plain text, not in brackets, not a label like "For each").
@@ -131,9 +133,10 @@ gemini_chat_food_extract = genai.GenerativeModel(
     system_instruction=(
         "You reply with JSON only (no markdown). "
         'Schema: {"items":[{"name":string,"calories":number,"protein":number,"carbs":number,"fat":number}]} '
-        "Each item is one food or one combined meal the assistant estimated with numbers. "
-        "Copy numeric totals from the assistant text; use 0 for a macro not stated. "
-        "If there are no concrete per-food or per-meal estimates, return {\"items\":[]}."
+        "Each item is one food or one combined meal. "
+        "Prefer numbers from the assistant text; if the user asked about a specific food but the assistant gave no digits, "
+        "return one item with reasonable typical totals for one common serving or 100g. "
+        "Only return {\"items\":[]} when no specific food is identifiable."
     ),
 )
 
@@ -997,12 +1000,16 @@ def _wants_chat_food_estimate(prompt: str) -> bool:
         return False
     if re.match(r"^(hi|hello|hey|thanks|thank you|谢谢|谢了|好的|ok|okay)\b", p, re.I):
         return False
+    if _asks_saved_food_log_lookup(prompt):
+        return False
     return bool(
         re.search(
             r"calor|kcal|大卡|热量|千?卡|\bkj\b|macro|protein|carb|fat|蛋白|碳水|脂肪|"
             r"estimate|portion|serving|一份|一碗|一个|一根|一片|营养|多少克|几克|"
-            r"grams?|\d\s*克|how\s+much|多少|营养价值|成分|含糖|含多少|几卡|"
-            r"香蕉|苹果|鸡蛋|米饭|面包|牛奶|咖啡|肉|菜|饭|面|汤",
+            r"grams?|\d\s*克|how\s+much|多少|营养价值|有什么营养|营养怎么样|营养成分|"
+            r"成分|含糖|含多少|几卡|nutritional\s+value|nutrition\s+(?:of|for|in)|nutrients?\s+in|"
+            r"香蕉|苹果|鸡蛋|米饭|面包|牛奶|咖啡|肉|菜|饭|面|汤|"
+            r"的\s*营养|食物.*营养|food.*nutri",
             p,
             re.I,
         )
@@ -1055,7 +1062,7 @@ def _extract_loggable_items_chat_fallback_sync(user_prompt: str, assistant_text:
     """One-shot JSON extraction when the main model omits FOOD_LOG_BLOCKS."""
     if not (assistant_text and str(assistant_text).strip()):
         return []
-    if not re.search(r"\d", assistant_text):
+    if not _wants_chat_food_estimate(user_prompt) and not re.search(r"\d", assistant_text):
         return []
     payload = (
         "Extract structured rows from this exchange.\n\nUSER:\n"
@@ -1065,7 +1072,9 @@ def _extract_loggable_items_chat_fallback_sync(user_prompt: str, assistant_text:
     )
     tail = (
         '\n\nReturn ONLY one JSON object: {"items":[{"name":string,"calories":number,'
-        '"protein":number,"carbs":number,"fat":number}]} — no markdown, no code fences.'
+        '"protein":number,"carbs":number,"fat":number}]} — no markdown, no code fences. '
+        "If the user asked about a specific food but the assistant gave no digits, "
+        "return one item with reasonable typical totals (one serving or 100g)."
     )
 
     def _parse_items_from_data(data) -> list[dict]:
@@ -1502,6 +1511,51 @@ def _wants_week_food_log_summary(text: str) -> bool:
     )
 
 
+def _asks_saved_food_log_lookup(prompt: str) -> bool:
+    """User is asking about saved intake for a day/week — not estimating a new food to log."""
+    if not (prompt and str(prompt).strip()):
+        return False
+    p = str(prompt).strip()
+
+    if _wants_week_food_log_summary(p):
+        return True
+
+    if re.search(
+        r"food\s*log|食物记录|饮食记录|食物\s*记录|记录里|根据.*记录|"
+        r"my\s+(?:food\s*)?log|from\s+my\s+log|(?:what|how much)\s+did\s+i\s+(?:eat|have)|"
+        r"how\s+much\s+did\s+i\s+eat|我吃了什么|吃了什么|吃了多少|摄入了多少|"
+        r"calorie\s+intake|calories\s+(?:did\s+i|i\s+(?:ate|had|logged))|"
+        r"查看.*记录|查询.*记录|那一?天的",
+        p,
+        re.I,
+    ):
+        return True
+
+    # "营养价值 of apple" is not a log lookup even if a date appears elsewhere.
+    if re.search(
+        r"营养价值|有什么营养|营养成分|nutritional\s+value|nutrition\s+of",
+        p,
+        re.I,
+    ) and not re.search(r"吃了|摄入|记录|log|总共|合计", p, re.I):
+        return False
+
+    has_day = bool(
+        _extract_explicit_dates_from_text(p)
+        or re.search(r"今天|今日|昨天|昨日|前天|today|yesterday", p, re.I)
+    )
+    if not has_day:
+        return False
+
+    return bool(
+        re.search(
+            r"吃了|摄入|记录|log|当天|总共|合计|一共|多少卡|多少卡路里|多少热量|"
+            r"卡路里是多少|热量是多少|kcal|大卡|吃了多少",
+            p,
+            re.I,
+        )
+    )
+
+
 def _week_dates_from_anchor(anchor: date) -> list[date]:
     """Sunday–Saturday week used by /food-log (week starts Sunday)."""
     prev_sunday = anchor - timedelta(days=anchor.weekday() + 1)
@@ -1923,16 +1977,23 @@ async def generate():
 
         response_text = await get_ai_chat_response()
         response_text = response_text or ""
+        saved_log_query = bool(food_block) or _asks_saved_food_log_lookup(prompt)
         visible_text, loggable_items = strip_chat_food_log_blocks(response_text)
-        if (
-            not loggable_items
-            and visible_text
-            and re.search(r"\d", visible_text)
+        if saved_log_query:
+            loggable_items = []
+        run_food_log_fallback = (
+            not saved_log_query
+            and not loggable_items
+            and bool(visible_text)
             and (
                 _wants_chat_food_estimate(prompt)
-                or _assistant_has_loggable_nutrition_signal(visible_text)
+                or (
+                    re.search(r"\d", visible_text)
+                    and _assistant_has_loggable_nutrition_signal(visible_text)
+                )
             )
-        ):
+        )
+        if run_food_log_fallback:
 
             def run_fallback():
                 return _extract_loggable_items_chat_fallback_sync(prompt, visible_text)
